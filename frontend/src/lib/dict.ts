@@ -1,0 +1,303 @@
+import type { Locale } from './i18n';
+
+export interface Dict {
+  dir: 'ltr' | 'rtl';
+  nav: {
+    catalog: string; collections: string; story: string; journal: string;
+    wishlist: string; cart: string; account: string; admin: string; logout: string;
+  };
+  home: {
+    eyebrow: string; heroTitle: string; heroSub: string; heroCta: string; heroSecondary: string;
+    marquee: string; featured: string; featuredSub: string; seeAll: string;
+    story: string; storyP1: string; storyP2: string; storyCta: string;
+    categories: string; newArrivals: string; newArrivalsSub: string;
+    newsletter: string; newsletterSub: string; newsletterCta: string; emailPlaceholder: string;
+    footerTagline: string; footerShop: string; footerHelp: string; footerFollow: string;
+  };
+  catalog: {
+    title: string; subtitle: string; filters: string; sort: string;
+    sortNewest: string; sortPriceAsc: string; sortPriceDesc: string;
+    category: string; family: string; price: string;
+    inStock: string; clearAll: string; results: string; noResults: string;
+  };
+  product: {
+    addToCart: string; addToWishlist: string; addedToCart: string;
+    topNotes: string; heartNotes: string; baseNotes: string; pyramid: string; composition: string;
+    concentration: string; size: string; longevity: string; sillage: string;
+    occasions: string; seasons: string; quantity: string;
+    inStock: string; lowStock: string; outOfStock: string;
+    delivery: string; payment: string; related: string; back: string;
+  };
+  cart: {
+    title: string; empty: string; emptyCta: string;
+    subtotal: string; shipping: string; toBeConfirmed: string;
+    total: string; checkout: string; remove: string; continueShopping: string;
+    items: string; item: string;
+  };
+  checkout: {
+    title: string;
+    step1: string; step2: string; step3: string; step4: string;
+    fullName: string; phone: string; city: string; neighborhood: string; details: string;
+    mapHint: string; useMap: string; useText: string; coordsSaved: string;
+    next: string; back: string;
+    paymentTitle: string; paymentInstruction: string; amountToSend: string;
+    proofTitle: string; proofHint: string; uploadCta: string; orDrop: string; proofUploaded: string;
+    reviewTitle: string; placeOrder: string;
+    confirmedTitle: string; confirmedSub: string;
+    orderNumber: string; backHome: string; viewOrder: string;
+    summary: string;
+  };
+  account: {
+    title: string; profile: string; orders: string; addresses: string;
+    notifications: string; logout: string;
+    orderNumber: string; orderDate: string; orderItems: string; orderTotal: string;
+    orderStatus: string; viewOrder: string;
+  };
+  admin: {
+    title: string;
+    dashboard: string; products: string; orders: string; customers: string;
+    categories: string; settings: string;
+    totalSales: string; totalSalesSub: string;
+    newOrders: string; newOrdersSub: string;
+    customersStat: string; customersStatSub: string;
+    lowStock: string; lowStockSub: string;
+    recentOrders: string;
+    filterAll: string; filterPending: string; filterConfirmed: string;
+    filterPreparing: string; filterShipped: string; filterDelivered: string; filterRejected: string;
+    orderDetail: string; customer: string; deliveryAddress: string;
+    paymentMethod: string; paymentProof: string; items: string; total: string;
+    confirmPayment: string; rejectPayment: string;
+    rejectReason: string; cancel: string; submit: string;
+    statusTimeline: string; goShop: string;
+  };
+  status: {
+    PENDING: string; CONFIRMED: string; PREPARING: string;
+    SHIPPED: string; DELIVERED: string; REJECTED: string; CANCELLED: string;
+  };
+  common: { close: string; loading: string; currency: string };
+}
+
+const fr: Dict = {
+  dir: 'ltr',
+  nav: { catalog: 'Catalogue', collections: 'Collections', story: "L'Atelier", journal: 'Journal', wishlist: 'Favoris', cart: 'Panier', account: 'Mon Compte', admin: 'Administration', logout: 'Déconnexion' },
+  home: {
+    eyebrow: 'Maison de Parfum • Nouakchott',
+    heroTitle: "L'art du parfum,\nné du désert",
+    heroSub: "Douze fragrances rares composées entre l'Atlantique et l'Adrar — pour celles et ceux qui font de la sobriété un luxe.",
+    heroCta: 'Découvrir la collection',
+    heroSecondary: "L'histoire de la maison",
+    marquee: 'LIVRAISON À NOUAKCHOTT • PAIEMENT BANKILY • SEDAD • MASRVI • COMMANDES VÉRIFIÉES SOUS 24H • LIVRAISON À NOUAKCHOTT',
+    featured: 'Nouveautés',
+    featuredSub: "Les compositions les plus récentes de l'atelier.",
+    seeAll: 'Voir toute la collection',
+    story: "L'atelier A&M",
+    storyP1: "Fondée à Nouakchott en 2024 par Ammar El‑Maghevry, A&M Perfume puise dans la mémoire olfactive de la Mauritanie — le bois de l'Adrar, le sel atlantique, l'encens des veillées.",
+    storyP2: 'Chaque parfum est composé en petites séries, conditionné à la main, et numéroté.',
+    storyCta: "Lire l'histoire",
+    categories: 'Univers olfactifs',
+    newArrivals: 'Édition Limitée',
+    newArrivalsSub: "Or et Encens — une composition d'orfèvre, numérotée à 200 exemplaires.",
+    newsletter: 'Recevez nos compositions en avant‑première',
+    newsletterSub: 'Une lettre tous les deux mois. Pas de bruit.',
+    newsletterCta: "S'abonner",
+    emailPlaceholder: 'Votre adresse e‑mail',
+    footerTagline: 'Maison de parfum indépendante.\nNouakchott — Mauritanie.',
+    footerShop: 'Boutique', footerHelp: 'Aide', footerFollow: 'Suivre',
+  },
+  catalog: { title: 'La collection', subtitle: 'Douze fragrances, composées en petites séries.', filters: 'Filtres', sort: 'Trier', sortNewest: 'Nouveautés', sortPriceAsc: 'Prix croissant', sortPriceDesc: 'Prix décroissant', category: 'Catégorie', family: 'Famille olfactive', price: 'Prix', inStock: 'En stock uniquement', clearAll: 'Tout effacer', results: 'résultats', noResults: 'Aucun parfum ne correspond.' },
+  product: { addToCart: 'Ajouter au panier', addToWishlist: 'Ajouter aux favoris', addedToCart: 'Ajouté au panier', topNotes: 'Tête', heartNotes: 'Cœur', baseNotes: 'Fond', pyramid: 'Pyramide olfactive', composition: 'Composition', concentration: 'Concentration', size: 'Contenance', longevity: 'Longévité', sillage: 'Sillage', occasions: 'Occasions', seasons: 'Saisons', quantity: 'Quantité', inStock: 'En stock', lowStock: 'Stock limité', outOfStock: 'Épuisé', delivery: 'Livraison à Nouakchott sous 48h', payment: 'Bankily • Sedad • Masrvi', related: 'Vous aimerez aussi', back: 'Retour à la collection' },
+  cart: { title: 'Votre panier', empty: 'Votre panier est vide.', emptyCta: 'Découvrir la collection', subtotal: 'Sous‑total', shipping: 'Livraison', toBeConfirmed: 'À confirmer', total: 'Total', checkout: 'Passer la commande', remove: 'Retirer', continueShopping: 'Continuer mes achats', items: 'articles', item: 'article' },
+  checkout: {
+    title: 'Finaliser la commande',
+    step1: 'Livraison', step2: 'Paiement', step3: 'Justificatif', step4: 'Confirmation',
+    fullName: 'Nom complet', phone: 'Téléphone', city: 'Ville', neighborhood: 'Quartier', details: 'Précisions (point de repère, étage…)',
+    mapHint: 'Cliquez sur la carte pour épingler votre position exacte.',
+    useMap: 'Épingler sur la carte', useText: 'Saisir manuellement',
+    coordsSaved: 'Position enregistrée',
+    next: 'Continuer', back: 'Retour',
+    paymentTitle: 'Méthode de paiement',
+    paymentInstruction: "Envoyez le montant exact ci‑dessous au numéro correspondant, puis téléchargez la capture d'écran à l'étape suivante.",
+    amountToSend: 'Montant exact à envoyer',
+    proofTitle: 'Justificatif de paiement',
+    proofHint: "Une capture d'écran de la transaction (JPG ou PNG, max 5 Mo).",
+    uploadCta: 'Choisir un fichier', orDrop: 'ou glissez‑déposez',
+    proofUploaded: 'Justificatif téléchargé',
+    reviewTitle: 'Vérifiez votre commande',
+    placeOrder: 'Confirmer la commande',
+    confirmedTitle: 'Commande confirmée',
+    confirmedSub: 'Notre équipe vérifiera votre paiement sous 24 heures. Vous serez notifié dès la validation.',
+    orderNumber: 'Numéro de commande',
+    backHome: "Retour à l'accueil", viewOrder: 'Suivre ma commande',
+    summary: 'Récapitulatif',
+  },
+  account: { title: 'Mon compte', profile: 'Profil', orders: 'Commandes', addresses: 'Adresses', notifications: 'Notifications', logout: 'Déconnexion', orderNumber: 'N°', orderDate: 'Date', orderItems: 'Articles', orderTotal: 'Total', orderStatus: 'Statut', viewOrder: 'Voir' },
+  admin: {
+    title: 'Administration',
+    dashboard: 'Tableau de bord', products: 'Produits', orders: 'Commandes', customers: 'Clientèle', categories: 'Catégories', settings: 'Paramètres',
+    totalSales: "Chiffre d'affaires", totalSalesSub: 'sur 30 jours',
+    newOrders: 'Commandes', newOrdersSub: 'à vérifier',
+    customersStat: 'Clients', customersStatSub: 'ce mois',
+    lowStock: 'Stock faible', lowStockSub: 'sous 5 unités',
+    recentOrders: 'Commandes récentes',
+    filterAll: 'Toutes', filterPending: 'À vérifier', filterConfirmed: 'Confirmées', filterPreparing: 'En préparation', filterShipped: 'Expédiées', filterDelivered: 'Livrées', filterRejected: 'Rejetées',
+    orderDetail: 'Détail de la commande', customer: 'Client', deliveryAddress: 'Adresse de livraison', paymentMethod: 'Mode de paiement', paymentProof: 'Justificatif', items: 'Articles', total: 'Total',
+    confirmPayment: 'Confirmer le paiement', rejectPayment: 'Rejeter',
+    rejectReason: 'Motif du refus', cancel: 'Annuler', submit: 'Envoyer',
+    statusTimeline: 'Historique du statut',
+    goShop: '← Retour au site',
+  },
+  status: { PENDING: 'À vérifier', CONFIRMED: 'Confirmée', PREPARING: 'En préparation', SHIPPED: 'Expédiée', DELIVERED: 'Livrée', REJECTED: 'Rejetée', CANCELLED: 'Annulée' },
+  common: { close: 'Fermer', loading: 'Chargement…', currency: 'MRU' },
+};
+
+const en: Dict = {
+  dir: 'ltr',
+  nav: { catalog: 'Catalog', collections: 'Collections', story: 'The Atelier', journal: 'Journal', wishlist: 'Wishlist', cart: 'Cart', account: 'Account', admin: 'Admin', logout: 'Sign out' },
+  home: {
+    eyebrow: 'Perfume House • Nouakchott',
+    heroTitle: 'The art of perfume,\nborn of the desert',
+    heroSub: 'Twelve rare fragrances composed between the Atlantic and the Adrar — for those who treat restraint as a luxury.',
+    heroCta: 'Discover the collection',
+    heroSecondary: 'About the house',
+    marquee: 'DELIVERY TO NOUAKCHOTT • PAY WITH BANKILY • SEDAD • MASRVI • ORDERS VERIFIED WITHIN 24H • DELIVERY TO NOUAKCHOTT',
+    featured: 'New arrivals',
+    featuredSub: "The atelier's most recent compositions.",
+    seeAll: 'See the entire collection',
+    story: 'The A&M atelier',
+    storyP1: 'Founded in Nouakchott in 2024 by Ammar El‑Maghevry, A&M Perfume draws on the olfactive memory of Mauritania — the wood of the Adrar, Atlantic salt, the incense of long evenings.',
+    storyP2: 'Each scent is composed in small batches, bottled by hand, and numbered.',
+    storyCta: 'Read the story',
+    categories: 'Olfactive universes',
+    newArrivals: 'Limited Edition',
+    newArrivalsSub: "Or et Encens — a master goldsmith's composition, numbered to 200.",
+    newsletter: 'Receive our compositions in preview',
+    newsletterSub: 'A letter every two months. No noise.',
+    newsletterCta: 'Subscribe',
+    emailPlaceholder: 'Your email address',
+    footerTagline: 'Independent perfume house.\nNouakchott — Mauritania.',
+    footerShop: 'Shop', footerHelp: 'Help', footerFollow: 'Follow',
+  },
+  catalog: { title: 'The collection', subtitle: 'Twelve fragrances, composed in small batches.', filters: 'Filters', sort: 'Sort', sortNewest: 'Newest', sortPriceAsc: 'Price low to high', sortPriceDesc: 'Price high to low', category: 'Category', family: 'Olfactive family', price: 'Price', inStock: 'In stock only', clearAll: 'Clear all', results: 'results', noResults: 'No fragrance matches.' },
+  product: { addToCart: 'Add to cart', addToWishlist: 'Add to wishlist', addedToCart: 'Added to cart', topNotes: 'Top', heartNotes: 'Heart', baseNotes: 'Base', pyramid: 'Fragrance pyramid', composition: 'Composition', concentration: 'Concentration', size: 'Size', longevity: 'Longevity', sillage: 'Sillage', occasions: 'Occasions', seasons: 'Seasons', quantity: 'Quantity', inStock: 'In stock', lowStock: 'Low stock', outOfStock: 'Sold out', delivery: 'Delivered in Nouakchott within 48h', payment: 'Bankily • Sedad • Masrvi', related: 'You may also like', back: 'Back to collection' },
+  cart: { title: 'Your bag', empty: 'Your bag is empty.', emptyCta: 'Discover the collection', subtotal: 'Subtotal', shipping: 'Shipping', toBeConfirmed: 'To be confirmed', total: 'Total', checkout: 'Checkout', remove: 'Remove', continueShopping: 'Continue shopping', items: 'items', item: 'item' },
+  checkout: {
+    title: 'Checkout',
+    step1: 'Delivery', step2: 'Payment', step3: 'Proof', step4: 'Confirmation',
+    fullName: 'Full name', phone: 'Phone', city: 'City', neighborhood: 'Neighborhood', details: 'Details (landmark, floor…)',
+    mapHint: 'Click on the map to pin your exact location.',
+    useMap: 'Pin on map', useText: 'Enter manually',
+    coordsSaved: 'Location saved',
+    next: 'Continue', back: 'Back',
+    paymentTitle: 'Payment method',
+    paymentInstruction: 'Send the exact amount below to the corresponding number, then upload the screenshot in the next step.',
+    amountToSend: 'Exact amount',
+    proofTitle: 'Payment proof',
+    proofHint: 'A screenshot of the transaction (JPG or PNG, max 5MB).',
+    uploadCta: 'Choose a file', orDrop: 'or drag and drop',
+    proofUploaded: 'Proof uploaded',
+    reviewTitle: 'Review your order',
+    placeOrder: 'Place order',
+    confirmedTitle: 'Order confirmed',
+    confirmedSub: 'Our team will verify your payment within 24 hours. You will be notified upon validation.',
+    orderNumber: 'Order number',
+    backHome: 'Back to home', viewOrder: 'Track my order',
+    summary: 'Summary',
+  },
+  account: { title: 'My account', profile: 'Profile', orders: 'Orders', addresses: 'Addresses', notifications: 'Notifications', logout: 'Sign out', orderNumber: '#', orderDate: 'Date', orderItems: 'Items', orderTotal: 'Total', orderStatus: 'Status', viewOrder: 'View' },
+  admin: {
+    title: 'Admin',
+    dashboard: 'Dashboard', products: 'Products', orders: 'Orders', customers: 'Customers', categories: 'Categories', settings: 'Settings',
+    totalSales: 'Revenue', totalSalesSub: '30 days',
+    newOrders: 'Orders', newOrdersSub: 'to verify',
+    customersStat: 'Customers', customersStatSub: 'this month',
+    lowStock: 'Low stock', lowStockSub: 'under 5 units',
+    recentOrders: 'Recent orders',
+    filterAll: 'All', filterPending: 'To verify', filterConfirmed: 'Confirmed', filterPreparing: 'Preparing', filterShipped: 'Shipped', filterDelivered: 'Delivered', filterRejected: 'Rejected',
+    orderDetail: 'Order detail', customer: 'Customer', deliveryAddress: 'Delivery address', paymentMethod: 'Payment method', paymentProof: 'Proof of payment', items: 'Items', total: 'Total',
+    confirmPayment: 'Confirm payment', rejectPayment: 'Reject',
+    rejectReason: 'Rejection reason', cancel: 'Cancel', submit: 'Send',
+    statusTimeline: 'Status history',
+    goShop: '← Back to site',
+  },
+  status: { PENDING: 'To verify', CONFIRMED: 'Confirmed', PREPARING: 'Preparing', SHIPPED: 'Shipped', DELIVERED: 'Delivered', REJECTED: 'Rejected', CANCELLED: 'Cancelled' },
+  common: { close: 'Close', loading: 'Loading…', currency: 'MRU' },
+};
+
+const ar: Dict = {
+  dir: 'rtl',
+  nav: { catalog: 'التشكيلة', collections: 'المجموعات', story: 'الورشة', journal: 'اليومية', wishlist: 'المفضلة', cart: 'السلة', account: 'حسابي', admin: 'الإدارة', logout: 'تسجيل الخروج' },
+  home: {
+    eyebrow: 'دار عطور • نواكشوط',
+    heroTitle: 'فنّ العطر،\nمولود من الصحراء',
+    heroSub: 'اثنا عشر عطراً نادراً، صيغت بين المحيط الأطلسي وآدرار — لمن يرى في الاعتدال ترفاً.',
+    heroCta: 'اكتشف التشكيلة',
+    heroSecondary: 'حكاية الدار',
+    marquee: 'توصيل داخل نواكشوط • الدفع عبر بنكيلي • سداد • مصرفي • التحقق من الطلبات خلال 24 ساعة • توصيل داخل نواكشوط',
+    featured: 'إصدارات جديدة',
+    featuredSub: 'أحدث تركيبات الورشة.',
+    seeAll: 'استعراض كامل التشكيلة',
+    story: 'ورشة A&M',
+    storyP1: 'تأسست في نواكشوط عام 2024 على يد عمار المغفري، تستلهم A&M Perfume ذاكرة موريتانيا الشميّة — خشب آدرار، ملح الأطلسي، بخور السهرات.',
+    storyP2: 'تُركَّب كل عطورنا على دفعات صغيرة، تُعبّأ يدوياً، وتُرقّم.',
+    storyCta: 'اقرأ الحكاية',
+    categories: 'عوالم شمّيّة',
+    newArrivals: 'إصدار محدود',
+    newArrivalsSub: 'ذهب وبخور — تركيبة صائغ، مرقّمة من 200 نسخة.',
+    newsletter: 'استلم تركيباتنا قبل غيرك',
+    newsletterSub: 'رسالة كل شهرين. بلا ضجيج.',
+    newsletterCta: 'اشترك',
+    emailPlaceholder: 'بريدك الإلكتروني',
+    footerTagline: 'دار عطور مستقلة.\nنواكشوط — موريتانيا.',
+    footerShop: 'المتجر', footerHelp: 'مساعدة', footerFollow: 'تابعنا',
+  },
+  catalog: { title: 'التشكيلة', subtitle: 'اثنا عشر عطراً، تُركَّب على دفعات صغيرة.', filters: 'تصفية', sort: 'ترتيب', sortNewest: 'الأحدث', sortPriceAsc: 'السعر تصاعدياً', sortPriceDesc: 'السعر تنازلياً', category: 'الفئة', family: 'العائلة العطرية', price: 'السعر', inStock: 'المتوفر فقط', clearAll: 'مسح الكل', results: 'نتائج', noResults: 'لا يوجد عطر مطابق.' },
+  product: { addToCart: 'أضف إلى السلة', addToWishlist: 'أضف إلى المفضلة', addedToCart: 'أُضيف إلى السلة', topNotes: 'القمة', heartNotes: 'القلب', baseNotes: 'القاعدة', pyramid: 'الهرم الشميّ', composition: 'التركيبة', concentration: 'التركيز', size: 'الحجم', longevity: 'الثبات', sillage: 'الانتشار', occasions: 'المناسبات', seasons: 'الفصول', quantity: 'الكمية', inStock: 'متوفر', lowStock: 'كميات محدودة', outOfStock: 'نفد', delivery: 'توصيل إلى نواكشوط خلال 48 ساعة', payment: 'بنكيلي • سداد • مصرفي', related: 'قد يعجبك أيضاً', back: 'العودة إلى التشكيلة' },
+  cart: { title: 'سلتك', empty: 'سلتك فارغة.', emptyCta: 'اكتشف التشكيلة', subtotal: 'المجموع الفرعي', shipping: 'الشحن', toBeConfirmed: 'يُحدّد لاحقاً', total: 'الإجمالي', checkout: 'إتمام الطلب', remove: 'إزالة', continueShopping: 'متابعة التسوق', items: 'منتجات', item: 'منتج' },
+  checkout: {
+    title: 'إتمام الطلب',
+    step1: 'التوصيل', step2: 'الدفع', step3: 'الإثبات', step4: 'تأكيد',
+    fullName: 'الاسم الكامل', phone: 'الهاتف', city: 'المدينة', neighborhood: 'الحيّ', details: 'تفاصيل (معلم قريب، الطابق…)',
+    mapHint: 'انقر على الخريطة لتحديد موقعك.',
+    useMap: 'تحديد على الخريطة', useText: 'إدخال يدوي',
+    coordsSaved: 'تم حفظ الموقع',
+    next: 'متابعة', back: 'رجوع',
+    paymentTitle: 'طريقة الدفع',
+    paymentInstruction: 'حوّل المبلغ المحدد إلى الرقم المناسب، ثم ارفع لقطة الشاشة في الخطوة التالية.',
+    amountToSend: 'المبلغ المطلوب',
+    proofTitle: 'إثبات الدفع',
+    proofHint: 'لقطة شاشة للمعاملة (JPG أو PNG، حد أقصى 5 ميغا).',
+    uploadCta: 'اختر ملفاً', orDrop: 'أو اسحب وأفلت',
+    proofUploaded: 'تم رفع الإثبات',
+    reviewTitle: 'راجع طلبك',
+    placeOrder: 'تأكيد الطلب',
+    confirmedTitle: 'تم تأكيد الطلب',
+    confirmedSub: 'سيتحقق فريقنا من الدفع خلال 24 ساعة، وستُخطر فور الموافقة.',
+    orderNumber: 'رقم الطلب',
+    backHome: 'العودة للرئيسية', viewOrder: 'متابعة طلبي',
+    summary: 'ملخص',
+  },
+  account: { title: 'حسابي', profile: 'الملف الشخصي', orders: 'طلباتي', addresses: 'العناوين', notifications: 'الإشعارات', logout: 'تسجيل الخروج', orderNumber: 'رقم', orderDate: 'التاريخ', orderItems: 'الأصناف', orderTotal: 'الإجمالي', orderStatus: 'الحالة', viewOrder: 'عرض' },
+  admin: {
+    title: 'الإدارة',
+    dashboard: 'لوحة التحكم', products: 'المنتجات', orders: 'الطلبات', customers: 'العملاء', categories: 'الفئات', settings: 'الإعدادات',
+    totalSales: 'الإيرادات', totalSalesSub: 'آخر 30 يوماً',
+    newOrders: 'طلبات', newOrdersSub: 'بانتظار التحقق',
+    customersStat: 'عملاء', customersStatSub: 'هذا الشهر',
+    lowStock: 'مخزون منخفض', lowStockSub: 'أقل من 5 قطع',
+    recentOrders: 'أحدث الطلبات',
+    filterAll: 'الكل', filterPending: 'بانتظار التحقق', filterConfirmed: 'مؤكدة', filterPreparing: 'قيد التحضير', filterShipped: 'تم الشحن', filterDelivered: 'تم التسليم', filterRejected: 'مرفوضة',
+    orderDetail: 'تفاصيل الطلب', customer: 'العميل', deliveryAddress: 'عنوان التوصيل', paymentMethod: 'طريقة الدفع', paymentProof: 'إثبات الدفع', items: 'الأصناف', total: 'الإجمالي',
+    confirmPayment: 'تأكيد الدفع', rejectPayment: 'رفض',
+    rejectReason: 'سبب الرفض', cancel: 'إلغاء', submit: 'إرسال',
+    statusTimeline: 'سجل الحالة',
+    goShop: '← العودة إلى المتجر',
+  },
+  status: { PENDING: 'بانتظار التحقق', CONFIRMED: 'مؤكدة', PREPARING: 'قيد التحضير', SHIPPED: 'تم الشحن', DELIVERED: 'تم التسليم', REJECTED: 'مرفوضة', CANCELLED: 'ملغاة' },
+  common: { close: 'إغلاق', loading: 'جارٍ التحميل…', currency: 'أوقية' },
+};
+
+const dicts: Record<Locale, Dict> = { fr, ar, en };
+
+export function getDict(locale: Locale): Dict {
+  return dicts[locale];
+}
