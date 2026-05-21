@@ -28,6 +28,7 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final com.amperfume.api.repository.SiteSettingsRepository siteSettingsRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -47,7 +48,7 @@ public class DataSeeder implements CommandLineRunner {
                 .active(true)
                 .build();
         userRepository.save(admin);
-        log.info("Seeded admin user {} (default password: {})", ADMIN_EMAIL, ADMIN_PASSWORD);
+        log.info("Seeded admin user {} — change the default password immediately after first login", ADMIN_EMAIL);
     }
 
     private void seedProducts() {
