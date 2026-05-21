@@ -10,7 +10,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "notifications", indexes = {
         @Index(name = "idx_notifications_user", columnList = "user_id"),
-        @Index(name = "idx_notifications_read", columnList = "isRead")
+        @Index(name = "idx_notifications_read", columnList = "is_read")
 })
 @Getter
 @Setter
@@ -41,7 +41,7 @@ public class Notification {
     /** ID of the related entity (e.g. order id). */
     private Long relatedId;
 
-    @Column(nullable = false)
+    @Column(name = "is_read", nullable = false)
     @Builder.Default
     private boolean read = false;
 

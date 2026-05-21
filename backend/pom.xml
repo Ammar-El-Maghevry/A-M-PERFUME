@@ -23,7 +23,7 @@
     <jjwt.version>0.12.5</jjwt.version>
     <springdoc.version>2.5.0</springdoc.version>
     <cloudinary.version>1.39.0</cloudinary.version>
-    <lombok.version>1.18.36</lombok.version>
+    <lombok.version>1.18.38</lombok.version>
   </properties>
 
   <dependencies>

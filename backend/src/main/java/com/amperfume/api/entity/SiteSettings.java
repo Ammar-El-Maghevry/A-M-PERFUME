@@ -24,7 +24,7 @@ public class SiteSettings {
     @Column(nullable = false, length = 64)
     private String settingKey;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "\"value\"", columnDefinition = "TEXT")
     private String value;
 
     @Column(length = 255)

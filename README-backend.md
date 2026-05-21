@@ -60,7 +60,7 @@ curl -s 'http://localhost:8080/api/products?size=4' | jq
 
 ### 4. Running the backend without Docker
 
-You need Java 17+, Maven (or use `./mvnw`), and a local Postgres.
+You need Java 17/21, Maven (or use `./mvnw`), and a local Postgres.
 
 ```bash
 cd backend
@@ -68,6 +68,13 @@ cd backend
 ```
 
 The default profile is `dev`. Override anything via env vars listed below.
+
+> **Note on JDK versions.** Lombok 1.18.38 (the version we ship) supports
+> Java 17–24 cleanly and Java 25 with a harmless `sun.misc.Unsafe`
+> deprecation warning. Earlier Lombok releases (1.18.36 and below) fail to
+> compile under Java 25 with `com.sun.tools.javac.code.TypeTag :: UNKNOWN`;
+> if you hit that, upgrade Lombok or point `JAVA_HOME` at a Java 21 JDK for
+> local builds. Production uses Java 17 via the Docker image.
 
 ---
 
