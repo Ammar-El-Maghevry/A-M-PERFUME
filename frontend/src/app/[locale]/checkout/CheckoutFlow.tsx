@@ -532,6 +532,7 @@ interface PaymentStepProps {
 }
 
 function PaymentStep({ dict, locale, payment, setPayment, amount, onNext, onBack }: PaymentStepProps) {
+  const selectedPaymentLink = PAYMENT_METHODS.find((m) => m.key === payment)?.link ?? null;
   return (
     <div className="col gap-lg p-6 md:p-10 lg:p-12" style={{ background: 'var(--ivory)' }}>
       <div>
@@ -610,6 +611,21 @@ function PaymentStep({ dict, locale, payment, setPayment, amount, onNext, onBack
         })}
       </div>
 
+      {payment === 'WHATSAPP' && selectedPaymentLink && (
+        <a
+          href={selectedPaymentLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-primary"
+          style={{ background: '#075e54', alignSelf: 'flex-start', gap: 10 }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M20.5 3.5A11 11 0 0 0 3.6 17l-1.1 4 4.1-1.1A11 11 0 1 0 20.5 3.5Zm-8.5 18a9 9 0 0 1-4.6-1.3l-.3-.2-2.4.6.6-2.3-.2-.4A9 9 0 1 1 12 21.5Zm5-6.7c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1l-.9 1.1c-.2.2-.4.2-.6.1a7.4 7.4 0 0 1-3.6-3.2c-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.6l-.9-2.1c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3a10.3 10.3 0 0 0 4 3.5 13.5 13.5 0 0 0 1.4.5c.6.2 1.1.2 1.5.1.5-.1 1.7-.7 1.9-1.3.2-.6.2-1.1.2-1.2 0-.1-.3-.2-.6-.3Z"/>
+          </svg>
+          Ouvrir WhatsApp →
+        </a>
+      )}
+
       <div
         className="row"
         style={{
@@ -677,12 +693,27 @@ function ProofStep({ dict, payment, proof, setProof, onNext, onBack }: ProofStep
         >
           {payment.initials}
         </div>
-        <div className="col" style={{ gap: 2 }}>
+        <div className="col" style={{ gap: 2, flex: 1 }}>
           <span className="caption">PAIEMENT VIA</span>
           <strong>
-            {payment.name} · {payment.number}
+            {payment.name}{payment.link ? '' : ` · ${payment.number}`}
           </strong>
         </div>
+        {payment.link && (
+          <a
+            href={payment.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="caption"
+            style={{
+              padding: '10px 14px', background: '#075e54', color: 'var(--cream)',
+              letterSpacing: '0.12em', minHeight: 44,
+              display: 'inline-flex', alignItems: 'center',
+            }}
+          >
+            OUVRIR →
+          </a>
+        )}
       </div>
 
       <div

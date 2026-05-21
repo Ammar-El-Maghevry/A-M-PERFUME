@@ -1314,7 +1314,7 @@ function AdminSettings({ dict }: { dict: Dict }) {
             <Field label="Bankily" value="22 33 44 55" onChange={() => {}} />
             <Field label="Sedad" value="36 11 88 22" onChange={() => {}} />
             <Field label="Masrvi" value="42 09 77 14" onChange={() => {}} />
-            <Field label="WhatsApp" value="+222 38 12 04 04" onChange={() => {}} />
+            <Field label="WhatsApp (lien officiel)" value="https://www.tiktok.com/link/v2?aid=1988&lang=fr&scene=bio_url&target=https%3A%2F%2Fwa.me%2Fmessage%2FRKG2ZIH3O7XHL1" onChange={() => {}} />
           </div>
         </div>
       </div>

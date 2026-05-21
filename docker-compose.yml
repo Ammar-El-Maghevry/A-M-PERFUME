@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: amperfume-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: amperfume
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - amperfume_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d amperfume"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: amperfume-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DATABASE_URL: jdbc:postgresql://postgres:5432/amperfume
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: amperfume_super_secret_key_2024_minimum_32_chars
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-dj4rvikm2}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-498815649885781}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-your_secret_here}
+      BASE_URL: http://localhost:8080
+    ports:
+      - "8080:8080"
+
+volumes:
+  amperfume_pgdata:

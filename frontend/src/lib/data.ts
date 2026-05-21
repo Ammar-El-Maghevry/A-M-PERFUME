@@ -263,11 +263,14 @@ export const DEMO_ORDERS: DemoOrder[] = [
   { id: 5, orderNumber: 'AM-2026-0038', customerName: 'Aïcha Wane', customerPhone: '+222 22 44 66 88', city: 'Nouakchott', neighborhood: 'Tevragh-Zeina', details: '', lat: 18.0810, lng: -15.9710, items: [{ productId: 3, quantity: 1 }], paymentMethod: 'WHATSAPP', status: 'PENDING', createdAt: '2026-05-19T19:48:00', proofNote: 'Capture WhatsApp', history: [{ status: 'PENDING', at: '2026-05-19T19:48:00' }] },
 ];
 
+export const WHATSAPP_LINK =
+  'https://www.tiktok.com/link/v2?aid=1988&lang=fr&scene=bio_url&target=https%3A%2F%2Fwa.me%2Fmessage%2FRKG2ZIH3O7XHL1';
+
 export const PAYMENT_METHODS = [
-  { key: 'BANKILY' as const,  name: 'Bankily',  number: '22 33 44 55',     sub: 'Banque Mauritanienne · Mobile Money', initials: 'B' },
-  { key: 'SEDAD' as const,    name: 'Sedad',    number: '36 11 88 22',     sub: 'Sedad Banque · Mobile',               initials: 'S' },
-  { key: 'MASRVI' as const,   name: 'Masrvi',   number: '42 09 77 14',     sub: 'Société Générale Mauritanie',          initials: 'M' },
-  { key: 'WHATSAPP' as const, name: 'WhatsApp', number: '+222 38 12 04 04', sub: "Paiement assisté par l'équipe",        initials: 'W' },
+  { key: 'BANKILY' as const,  name: 'Bankily',  number: '22 33 44 55',     sub: 'Banque Mauritanienne · Mobile Money', initials: 'B', link: null as string | null },
+  { key: 'SEDAD' as const,    name: 'Sedad',    number: '36 11 88 22',     sub: 'Sedad Banque · Mobile',               initials: 'S', link: null as string | null },
+  { key: 'MASRVI' as const,   name: 'Masrvi',   number: '42 09 77 14',     sub: 'Société Générale Mauritanie',          initials: 'M', link: null as string | null },
+  { key: 'WHATSAPP' as const, name: 'WhatsApp', number: 'Cliquer pour ouvrir le chat', sub: "Paiement assisté par l'équipe", initials: 'W', link: WHATSAPP_LINK as string | null },
 ];
 
 export function findProduct(id: number): Product | undefined {

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
+import { WHATSAPP_LINK } from '@/lib/data';
 import type { Locale } from '@/lib/i18n';
 import type { Dict } from '@/lib/dict';
 
@@ -38,7 +39,14 @@ export function Footer({ locale, dict }: FooterProps) {
             <span style={{ fontSize: 14 }}>Instagram</span>
             <span style={{ fontSize: 14 }}>Facebook</span>
             <span style={{ fontSize: 14 }}>TikTok</span>
-            <span style={{ fontSize: 14 }}>WhatsApp</span>
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 14 }}
+            >
+              WhatsApp
+            </a>
           </div>
           <div className="col gap-md col-span-2 sm:col-span-3 lg:col-span-1">
             <span className="caption" style={{ color: 'var(--accent-soft)' }}>{dict.home.newsletter}</span>
