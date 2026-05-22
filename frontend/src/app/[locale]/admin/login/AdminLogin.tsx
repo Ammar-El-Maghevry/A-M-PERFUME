@@ -6,8 +6,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Logo } from '@/components/ui/Logo';
 import type { Locale } from '@/lib/i18n';
 
-const ADMIN_EMAIL = 'admin@amperfume.mr';
-const ADMIN_PASSWORD = 'Admin@2024';
+const ADMIN_EMAIL = 'am_admin26566269@amperfume.mr';
+const ADMIN_PASSWORD = 'ammarmohamed@@26566269';
 
 interface AdminLoginProps {
   locale: Locale;
@@ -88,7 +88,7 @@ export function AdminLogin({ locale }: AdminLoginProps) {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@amperfume.mr"
+              placeholder="votre e‑mail administrateur"
               required
               autoFocus
             />

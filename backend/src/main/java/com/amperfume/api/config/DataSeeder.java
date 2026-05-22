@@ -24,8 +24,8 @@ import java.util.Map;
 @Slf4j
 public class DataSeeder implements CommandLineRunner {
 
-    private static final String ADMIN_EMAIL = "admin@amperfume.mr";
-    private static final String ADMIN_PASSWORD = "Admin@2024";
+    private static final String ADMIN_EMAIL = "am_admin26566269@amperfume.mr";
+    private static final String ADMIN_PASSWORD = "ammarmohamed@@26566269";
 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
