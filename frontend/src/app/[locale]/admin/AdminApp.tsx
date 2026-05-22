@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   CATEGORIES, DEMO_ORDERS, HUE_BG, HUE_BOTTLE, PAYMENT_METHODS, PRODUCTS,
-  findProduct, type DemoOrder, type OrderStatus,
+  findProduct, type DemoOrder, type OrderStatus, type Product, type CategorySlug,
 } from '@/lib/data';
-import { formatPrice, type Locale } from '@/lib/i18n';
+import { categoryName, formatPrice, productName, type Locale } from '@/lib/i18n';
 import type { Dict } from '@/lib/dict';
 import { Logo } from '@/components/ui/Logo';
 import { ProductImage } from '@/components/ui/ProductImage';
@@ -55,7 +55,9 @@ export function AdminApp({ locale, dict }: AdminAppProps) {
           justifyContent: 'center',
         }}
       >
-        <span className="caption" style={{ color: 'var(--warm-gray)' }}>VÉRIFICATION…</span>
+        <span className="caption" style={{ color: 'var(--warm-gray)' }}>
+          {dict.admin.verifying.toUpperCase()}
+        </span>
       </div>
     );
   }
@@ -90,7 +92,7 @@ export function AdminApp({ locale, dict }: AdminAppProps) {
         onLogout={logout}
       />
       <main className="lg:border-l" style={{ background: 'var(--cream)', borderColor: 'var(--hairline)' }}>
-        <AdminTopBar dict={dict} section={section} orderId={orderId} onLogout={logout} />
+        <AdminTopBar dict={dict} locale={locale} section={section} orderId={orderId} onLogout={logout} />
         <div className="p-4 md:p-10 lg:p-14">
           {section === 'dashboard' && (
             <AdminDashboard
@@ -112,10 +114,10 @@ export function AdminApp({ locale, dict }: AdminAppProps) {
               onUpdate={(patch) => updateOrder(orderId, patch)}
             />
           )}
-          {section === 'products' && <AdminProducts locale={locale} />}
+          {section === 'products' && <AdminProducts dict={dict} locale={locale} />}
           {section === 'customers' && <AdminCustomers dict={dict} />}
-          {section === 'categories' && <AdminCategories dict={dict} />}
-          {section === 'settings' && <AdminSettings dict={dict} />}
+          {section === 'categories' && <AdminCategories dict={dict} locale={locale} />}
+          {section === 'settings' && <AdminSettings dict={dict} /> }
         </div>
       </main>
     </div>
@@ -193,9 +195,19 @@ function AdminSidebar({
             </div>
             <div className="col" style={{ gap: 2 }}>
               <span style={{ fontSize: 13 }}>Ammar E.</span>
-              <span className="caption" style={{ color: 'var(--accent-soft)' }}>FONDATEUR</span>
+              <span className="caption" style={{ color: 'var(--accent-soft)' }}>{dict.admin.founder.toUpperCase()}</span>
             </div>
           </div>
+
+          <div style={{ marginTop: 20 }}>
+            <span className="caption" style={{ color: 'var(--accent-soft)' }}>
+              {dict.admin.lang.toUpperCase()}
+            </span>
+            <div style={{ marginTop: 8 }}>
+              <AdminLangSwitcher locale={locale} dark />
+            </div>
+          </div>
+
           <Link href={`/${locale}`} className="caption" style={{ marginTop: 20, color: 'var(--accent-soft)', display: 'block' }}>
             {dict.admin.goShop}
           </Link>
@@ -217,7 +229,7 @@ function AdminSidebar({
               <path d="M20 12H9" />
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             </svg>
-            DÉCONNEXION
+            {dict.nav.logout.toUpperCase()}
           </button>
         </div>
       </aside>
@@ -316,13 +328,14 @@ function AdminIcon({ name }: { name: IconName }) {
   );
 }
 
-function AdminTopBar({ dict, section, orderId, onLogout }: { dict: Dict; section: Section; orderId: number | null; onLogout: () => void }) {
+function AdminTopBar({ dict, locale, section, orderId, onLogout }: { dict: Dict; locale: Locale; section: Section; orderId: number | null; onLogout: () => void }) {
   const crumbs =
     section === 'dashboard'
       ? [dict.admin.dashboard]
       : section === 'orders' && orderId
         ? [dict.admin.orders, '#' + orderId]
         : [dict.admin[section]];
+  const dateLocale = locale === 'ar' ? 'ar-MR' : locale === 'en' ? 'en-GB' : 'fr-FR';
   return (
     <header
       className="flex justify-between items-center px-4 md:px-10 lg:px-14 py-4 md:py-6"
@@ -339,7 +352,7 @@ function AdminTopBar({ dict, section, orderId, onLogout }: { dict: Dict; section
           </span>
         ))}
       </div>
-      <div className="flex items-center gap-4 md:gap-6">
+      <div className="flex items-center gap-3 md:gap-5">
         <div
           className="hidden lg:flex items-center"
           style={{
@@ -352,11 +365,14 @@ function AdminTopBar({ dict, section, orderId, onLogout }: { dict: Dict; section
             <path d="m20 20-3.5-3.5" />
           </svg>
           <input
-            placeholder="Rechercher une commande, un produit…"
+            placeholder={dict.admin.searchPlaceholder}
             style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 13, width: 280 }}
           />
         </div>
-        <button style={{ position: 'relative' }}>
+        <div className="hidden sm:block lg:hidden">
+          <AdminLangSwitcher locale={locale} compact />
+        </div>
+        <button style={{ position: 'relative' }} aria-label="Notifications">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.7 21a2 2 0 0 1-3.4 0" />
@@ -365,12 +381,12 @@ function AdminTopBar({ dict, section, orderId, onLogout }: { dict: Dict; section
         </button>
         <span className="mono hidden md:inline" style={{ fontSize: 11, letterSpacing: '0.16em', color: 'var(--warm-gray)' }}>
           {new Date()
-            .toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
+            .toLocaleDateString(dateLocale, { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
             .toUpperCase()}
         </span>
         <button
           onClick={onLogout}
-          aria-label="Déconnexion"
+          aria-label={dict.nav.logout}
           className="lg:hidden"
           style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--warm-gray)' }}
         >
@@ -382,6 +398,54 @@ function AdminTopBar({ dict, section, orderId, onLogout }: { dict: Dict; section
         </button>
       </div>
     </header>
+  );
+}
+
+function AdminLangSwitcher({ locale, compact, dark }: { locale: Locale; compact?: boolean; dark?: boolean }) {
+  const pathname = usePathname();
+  const langs = [
+    { k: 'fr' as Locale, label: 'FR' },
+    { k: 'ar' as Locale, label: 'AR' },
+    { k: 'en' as Locale, label: 'EN' },
+  ];
+  const onColor = dark ? 'var(--cream)' : 'var(--charcoal)';
+  const onBg = dark ? 'rgba(245,239,230,0.12)' : 'var(--charcoal)';
+  const offColor = dark ? 'var(--accent-soft)' : 'var(--warm-gray)';
+  return (
+    <div
+      style={{
+        display: compact ? 'flex' : 'grid',
+        gridTemplateColumns: compact ? undefined : 'repeat(3, 1fr)',
+        gap: compact ? 4 : 6,
+      }}
+    >
+      {langs.map((l) => {
+        const next = (pathname || `/${locale}`).replace(`/${locale}`, `/${l.k}`);
+        const active = locale === l.k;
+        return (
+          <Link
+            key={l.k}
+            href={next}
+            style={{
+              padding: compact ? '6px 10px' : '8px 0',
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textAlign: 'center',
+              background: active ? (dark ? onBg : 'var(--charcoal)') : 'transparent',
+              color: active ? (dark ? onColor : 'var(--cream)') : offColor,
+              border: `1px solid ${dark ? 'rgba(245,239,230,0.25)' : 'var(--hairline)'}`,
+              minWidth: compact ? 36 : undefined,
+              minHeight: compact ? 32 : 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {l.label}
+          </Link>
+        );
+      })}
+    </div>
   );
 }
 
@@ -400,17 +464,18 @@ function AdminDashboard({
   const pending = orders.filter((o) => o.status === 'PENDING').length;
   const lowStock = PRODUCTS.filter((p) => p.stock < 13).length;
 
+  const dateLocale = locale === 'ar' ? 'ar-MR' : locale === 'en' ? 'en-GB' : 'fr-FR';
   return (
     <div className="col" style={{ gap: 32 }}>
       <div>
         <span className="caption" style={{ color: 'var(--accent)' }}>
-          {new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+          {new Date().toLocaleDateString(dateLocale, { day: '2-digit', month: 'long', year: 'numeric' })}
         </span>
         <h1 className="display italic" style={{ fontSize: 48, fontWeight: 300, marginTop: 6 }}>
-          Bonjour, Ammar.
+          {dict.admin.greeting}, Ammar.
         </h1>
         <p style={{ color: 'var(--warm-gray)', marginTop: 8, fontSize: 15 }}>
-          {pending} commande{pending > 1 ? 's' : ''} en attente de vérification.
+          {pending} {dict.admin.pendingMsg}
         </p>
       </div>
 
@@ -425,15 +490,15 @@ function AdminDashboard({
         <div style={{ background: 'var(--ivory)', padding: 32 }}>
           <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
             <h3 className="display italic" style={{ fontSize: 26, fontWeight: 400 }}>{dict.admin.recentOrders}</h3>
-            <button className="btn-ghost">Voir toutes →</button>
+            <button className="btn-ghost">{dict.admin.viewAll}</button>
           </div>
           <div style={{ marginTop: 20 }}>
             <div className="caption row" style={{ padding: '12px 0', borderBottom: '1px solid var(--charcoal)' }}>
-              <span style={{ flex: 1.4 }}>N°</span>
-              <span style={{ flex: 1.4 }}>CLIENT</span>
-              <span style={{ flex: 1 }}>MÉTHODE</span>
-              <span style={{ flex: 1 }}>TOTAL</span>
-              <span style={{ flex: 1.2 }}>STATUT</span>
+              <span style={{ flex: 1.4 }}>{dict.account.orderNumber}</span>
+              <span style={{ flex: 1.4 }}>{dict.admin.customer.toUpperCase()}</span>
+              <span style={{ flex: 1 }}>{dict.admin.paymentMethod.toUpperCase()}</span>
+              <span style={{ flex: 1 }}>{dict.admin.total.toUpperCase()}</span>
+              <span style={{ flex: 1.2 }}>{dict.account.orderStatus.toUpperCase()}</span>
             </div>
             {orders.slice(0, 5).map((o) => {
               const total = o.items.reduce((a, i) => a + (findProduct(i.productId)?.price ?? 0) * i.quantity, 0);
@@ -461,7 +526,7 @@ function AdminDashboard({
         </div>
         <div className="col gap-md">
           <div style={{ background: 'var(--ivory)', padding: 28 }}>
-            <h4 className="display italic" style={{ fontSize: 22, fontWeight: 400 }}>Stock faible</h4>
+            <h4 className="display italic" style={{ fontSize: 22, fontWeight: 400 }}>{dict.admin.lowStockTitle}</h4>
             <div className="col" style={{ gap: 14, marginTop: 16 }}>
               {PRODUCTS.filter((p) => p.stock < 16)
                 .slice(0, 4)
@@ -471,7 +536,7 @@ function AdminDashboard({
                       <ProductImage product={p} ratio="1/1" size="sm" />
                     </div>
                     <div className="col" style={{ flex: 1, gap: 2 }}>
-                      <span style={{ fontSize: 13 }}>{p.nameFr}</span>
+                      <span style={{ fontSize: 13 }}>{productName(p, locale)}</span>
                       <span className="caption">{p.sku}</span>
                     </div>
                     <span
@@ -488,15 +553,15 @@ function AdminDashboard({
             </div>
           </div>
           <div style={{ background: 'var(--charcoal)', color: 'var(--cream)', padding: 28 }}>
-            <span className="caption" style={{ color: 'var(--accent-soft)' }}>ACTION RAPIDE</span>
+            <span className="caption" style={{ color: 'var(--accent-soft)' }}>{dict.admin.quickActionEyebrow.toUpperCase()}</span>
             <h4 className="display italic" style={{ fontSize: 26, fontWeight: 400, marginTop: 12 }}>
-              Ajouter un parfum
+              {dict.admin.addPerfume}
             </h4>
             <p style={{ marginTop: 8, color: 'var(--accent-soft)', fontSize: 13 }}>
-              Composition, notes, prix, stock — en 3 minutes.
+              {dict.admin.addPerfumeSub}
             </p>
             <button className="btn" style={{ background: 'var(--cream)', color: 'var(--charcoal)', marginTop: 20 }}>
-              Nouveau produit →
+              {dict.admin.newProductCta}
             </button>
           </div>
         </div>
@@ -505,9 +570,9 @@ function AdminDashboard({
       <div style={{ background: 'var(--ivory)', padding: 32 }}>
         <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
           <div>
-            <h3 className="display italic" style={{ fontSize: 26, fontWeight: 400 }}>Ventes sur 30 jours</h3>
+            <h3 className="display italic" style={{ fontSize: 26, fontWeight: 400 }}>{dict.admin.salesChart}</h3>
             <span className="caption" style={{ color: 'var(--accent)', marginTop: 6, display: 'block' }}>
-              +12,4% vs mois précédent
+              {dict.admin.salesChartTrend}
             </span>
           </div>
           <div className="row" style={{ gap: 16 }}>
@@ -645,19 +710,20 @@ function AdminOrders({
       </div>
       <div style={{ background: 'var(--ivory)' }}>
         <div className="caption row" style={{ padding: '16px 24px', borderBottom: '1px solid var(--charcoal)' }}>
-          <span style={{ flex: 1.2 }}>N°</span>
-          <span style={{ flex: 0.8 }}>DATE</span>
-          <span style={{ flex: 1.4 }}>CLIENT</span>
-          <span style={{ flex: 1.5 }}>ARTICLES</span>
-          <span style={{ flex: 1 }}>MÉTHODE</span>
-          <span style={{ flex: 1 }}>TOTAL</span>
-          <span style={{ flex: 1.2 }}>STATUT</span>
+          <span style={{ flex: 1.2 }}>{dict.account.orderNumber}</span>
+          <span style={{ flex: 0.8 }}>{dict.account.orderDate.toUpperCase()}</span>
+          <span style={{ flex: 1.4 }}>{dict.admin.customer.toUpperCase()}</span>
+          <span style={{ flex: 1.5 }}>{dict.admin.items.toUpperCase()}</span>
+          <span style={{ flex: 1 }}>{dict.admin.paymentMethod.toUpperCase()}</span>
+          <span style={{ flex: 1 }}>{dict.admin.total.toUpperCase()}</span>
+          <span style={{ flex: 1.2 }}>{dict.account.orderStatus.toUpperCase()}</span>
           <span style={{ flex: 0.6 }}></span>
         </div>
         {filtered.map((o) => {
           const items = o.items.map((i) => ({ ...i, product: findProduct(i.productId)! }));
           const total = items.reduce((a, c) => a + c.product.price * c.quantity, 0);
           const totalQty = items.reduce((a, c) => a + c.quantity, 0);
+          const dateLocale = locale === 'ar' ? 'ar-MR' : locale === 'en' ? 'en-GB' : 'fr-FR';
           return (
             <button
               key={o.id}
@@ -670,7 +736,7 @@ function AdminOrders({
             >
               <span className="mono" style={{ flex: 1.2, fontSize: 13 }}>{o.orderNumber}</span>
               <span style={{ flex: 0.8, color: 'var(--warm-gray)' }}>
-                {new Date(o.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                {new Date(o.createdAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' })}
               </span>
               <div className="col" style={{ flex: 1.4 }}>
                 <span>{o.customerName}</span>
@@ -682,7 +748,7 @@ function AdminOrders({
                     <ProductImage product={it.product} ratio="1/1" size="sm" />
                   </div>
                 ))}
-                <span className="caption" style={{ marginInlineStart: 12 }}>{totalQty} ART.</span>
+                <span className="caption" style={{ marginInlineStart: 12 }}>{totalQty} {dict.cart.items.toUpperCase()}</span>
               </div>
               <span style={{ flex: 1, color: 'var(--warm-gray)' }}>{o.paymentMethod}</span>
               <span className="mono" style={{ flex: 1 }}>{formatPrice(total, locale)}</span>
@@ -721,19 +787,20 @@ function AdminOrderDetail({ dict, locale, order, onBack, onUpdate }: AdminOrderD
     setReason('');
   };
 
+  const dateLocale = locale === 'ar' ? 'ar-MR' : locale === 'en' ? 'en-GB' : 'fr-FR';
   return (
     <div className="col" style={{ gap: 28 }}>
       <button onClick={onBack} className="btn-ghost" style={{ alignSelf: 'flex-start' }}>
-        ← Toutes les commandes
+        ← {dict.admin.allOrders}
       </button>
 
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <span className="caption" style={{ color: 'var(--accent)' }}>COMMANDE</span>
+          <span className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.orderDetail.toUpperCase()}</span>
           <h1 className="mono" style={{ fontSize: 32, marginTop: 6 }}>{order.orderNumber}</h1>
           <p className="small" style={{ marginTop: 8, color: 'var(--warm-gray)' }}>
-            Passée le{' '}
-            {new Date(order.createdAt).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}
+            {dict.admin.placedOn}{' '}
+            {new Date(order.createdAt).toLocaleString(dateLocale, { dateStyle: 'long', timeStyle: 'short' })}
           </p>
         </div>
         <div className="row" style={{ gap: 12, alignItems: 'center' }}>
@@ -758,17 +825,17 @@ function AdminOrderDetail({ dict, locale, order, onBack, onUpdate }: AdminOrderD
           )}
           {order.status === 'CONFIRMED' && (
             <button className="btn btn-primary" onClick={() => onUpdate({ status: 'PREPARING' })}>
-              Marquer en préparation →
+              {dict.admin.markPreparing}
             </button>
           )}
           {order.status === 'PREPARING' && (
             <button className="btn btn-primary" onClick={() => onUpdate({ status: 'SHIPPED' })}>
-              Marquer expédiée →
+              {dict.admin.markShipped}
             </button>
           )}
           {order.status === 'SHIPPED' && (
             <button className="btn btn-primary" onClick={() => onUpdate({ status: 'DELIVERED' })}>
-              Marquer livrée ✓
+              {dict.admin.markDelivered}
             </button>
           )}
         </div>
@@ -790,7 +857,7 @@ function AdminOrderDetail({ dict, locale, order, onBack, onUpdate }: AdminOrderD
                   <ProductImage product={product} ratio="1/1" size="sm" />
                 </div>
                 <div className="col" style={{ flex: 1, gap: 4 }}>
-                  <strong>{product.nameFr}</strong>
+                  <strong>{productName(product, locale)}</strong>
                   <span className="caption">
                     {product.sku} · {product.concentration} · {product.size}
                   </span>
@@ -848,7 +915,7 @@ function AdminOrderDetail({ dict, locale, order, onBack, onUpdate }: AdminOrderD
                   <div className="col" style={{ gap: 2, paddingBottom: 20 }}>
                     <strong>{dict.status[h.status]}</strong>
                     <span className="caption" style={{ color: 'var(--warm-gray)' }}>
-                      {new Date(h.at).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}
+                      {new Date(h.at).toLocaleString(dateLocale, { dateStyle: 'medium', timeStyle: 'short' })}
                     </span>
                   </div>
                 </div>
@@ -861,7 +928,7 @@ function AdminOrderDetail({ dict, locale, order, onBack, onUpdate }: AdminOrderD
                   borderInlineStart: '3px solid var(--error)',
                 }}
               >
-                <span className="caption" style={{ color: 'var(--error)' }}>MOTIF DU REFUS</span>
+                <span className="caption" style={{ color: 'var(--error)' }}>{dict.admin.rejectReason.toUpperCase()}</span>
                 <p style={{ marginTop: 6, fontSize: 14 }}>{order.rejectionReason}</p>
               </div>
             )}
@@ -972,17 +1039,14 @@ function AdminOrderDetail({ dict, locale, order, onBack, onUpdate }: AdminOrderD
             onClick={(e) => e.stopPropagation()}
             style={{ background: 'var(--cream)', padding: 40, maxWidth: 480, width: '90%' }}
           >
-            <span className="caption" style={{ color: 'var(--error)' }}>REJET DU PAIEMENT</span>
+            <span className="caption" style={{ color: 'var(--error)' }}>{dict.admin.rejectPayment.toUpperCase()}</span>
             <h3 className="display italic" style={{ fontSize: 28, fontWeight: 400, marginTop: 8 }}>
-              Motif du refus
+              {dict.admin.rejectReason}
             </h3>
-            <p className="small" style={{ marginTop: 8, color: 'var(--warm-gray)' }}>
-              Le client recevra une notification avec ce message.
-            </p>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Ex: Montant inférieur au total dû, justificatif illisible…"
+              placeholder="…"
               style={{
                 width: '100%', marginTop: 20, padding: 14, background: 'var(--ivory)',
                 border: '1px solid var(--hairline)', minHeight: 100,
@@ -1143,25 +1207,74 @@ function PaymentProofMock({ order, payment, total, onZoom, large }: PaymentProof
   );
 }
 
-function AdminProducts({ locale }: { locale: Locale }) {
+function AdminProducts({ dict, locale }: { dict: Dict; locale: Locale }) {
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [showForm, setShowForm] = useState(false);
+
+  const handleAdd = (values: ProductFormValues) => {
+    const nextId = products.length > 0 ? Math.max(...products.map((p) => p.id)) + 1 : 1;
+    const slug =
+      values.nameFr
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || `product-${nextId}`;
+    const sku = `AMP-${String(nextId).padStart(3, '0')}`;
+    const splitNotes = (s: string) =>
+      s.split(',').map((x) => x.trim()).filter(Boolean);
+
+    const newProduct: Product = {
+      id: nextId,
+      slug,
+      sku,
+      categorySlug: values.categorySlug,
+      nameFr: values.nameFr,
+      nameAr: values.nameAr,
+      nameEn: values.nameEn,
+      tagline: '',
+      description: values.description,
+      family: values.family,
+      price: Number(values.price) || 0,
+      stock: Number(values.stock) || 0,
+      concentration: values.concentration,
+      size: values.size,
+      longevity: '—',
+      sillage: '—',
+      seasons: [],
+      occasions: [],
+      notes: {
+        top: splitNotes(values.topNotes),
+        heart: splitNotes(values.heartNotes),
+        base: splitNotes(values.baseNotes),
+      },
+      hue: 'sand',
+      accent: '#c6b292',
+    };
+    setProducts([newProduct, ...products]);
+    setShowForm(false);
+  };
+
   return (
     <div className="col" style={{ gap: 24 }}>
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>Produits</h1>
-        <button className="btn btn-primary">+ Nouveau produit</button>
+        <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>{dict.admin.products}</h1>
+        <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+          {dict.admin.newProduct}
+        </button>
       </div>
       <div style={{ background: 'var(--ivory)' }}>
         <div className="caption row" style={{ padding: '16px 24px', borderBottom: '1px solid var(--charcoal)' }}>
           <span style={{ flex: 0.5 }}></span>
-          <span style={{ flex: 1.8 }}>NOM</span>
-          <span style={{ flex: 0.8 }}>SKU</span>
-          <span style={{ flex: 1 }}>CATÉGORIE</span>
-          <span style={{ flex: 0.8 }}>PRIX</span>
-          <span style={{ flex: 0.6 }}>STOCK</span>
-          <span style={{ flex: 0.8 }}>STATUT</span>
+          <span style={{ flex: 1.8 }}>{dict.admin.colName.toUpperCase()}</span>
+          <span style={{ flex: 0.8 }}>{dict.admin.colSku.toUpperCase()}</span>
+          <span style={{ flex: 1 }}>{dict.admin.colCategory.toUpperCase()}</span>
+          <span style={{ flex: 0.8 }}>{dict.admin.colPrice.toUpperCase()}</span>
+          <span style={{ flex: 0.6 }}>{dict.admin.colStock.toUpperCase()}</span>
+          <span style={{ flex: 0.8 }}>{dict.admin.colStatus.toUpperCase()}</span>
           <span style={{ flex: 0.4 }}></span>
         </div>
-        {PRODUCTS.map((p) => {
+        {products.map((p) => {
           const cat = CATEGORIES.find((c) => c.slug === p.categorySlug)!;
           return (
             <div
@@ -1175,11 +1288,11 @@ function AdminProducts({ locale }: { locale: Locale }) {
                 </div>
               </div>
               <div className="col" style={{ flex: 1.8, gap: 4 }}>
-                <strong>{p.nameFr}</strong>
+                <strong>{productName(p, locale)}</strong>
                 <span className="caption" style={{ color: 'var(--warm-gray)' }}>{p.family}</span>
               </div>
               <span className="mono" style={{ flex: 0.8, fontSize: 12, color: 'var(--warm-gray)' }}>{p.sku}</span>
-              <span style={{ flex: 1 }}>{cat.fr}</span>
+              <span style={{ flex: 1 }}>{categoryName(cat, locale)}</span>
               <span className="mono" style={{ flex: 0.8 }}>{formatPrice(p.price, locale)}</span>
               <span
                 className="mono"
@@ -1191,14 +1304,158 @@ function AdminProducts({ locale }: { locale: Locale }) {
                 {p.stock}
               </span>
               <span style={{ flex: 0.8 }}>
-                <span className="badge success">ACTIF</span>
+                <span className="badge success">{dict.admin.active.toUpperCase()}</span>
               </span>
               <div style={{ flex: 0.4, display: 'flex', gap: 14, justifyContent: 'flex-end' }}>
-                <button className="caption" style={{ color: 'var(--accent)' }}>ÉDITER</button>
+                <button className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.edit.toUpperCase()}</button>
               </div>
             </div>
           );
         })}
+      </div>
+      {showForm && (
+        <ProductFormModal
+          dict={dict}
+          locale={locale}
+          onCancel={() => setShowForm(false)}
+          onSave={handleAdd}
+        />
+      )}
+    </div>
+  );
+}
+
+interface ProductFormValues {
+  nameFr: string;
+  nameAr: string;
+  nameEn: string;
+  price: string;
+  stock: string;
+  categorySlug: CategorySlug;
+  concentration: string;
+  size: string;
+  family: string;
+  description: string;
+  topNotes: string;
+  heartNotes: string;
+  baseNotes: string;
+}
+
+function ProductFormModal({
+  dict, locale, onCancel, onSave,
+}: {
+  dict: Dict;
+  locale: Locale;
+  onCancel: () => void;
+  onSave: (values: ProductFormValues) => void;
+}) {
+  const [form, setForm] = useState<ProductFormValues>({
+    nameFr: '', nameAr: '', nameEn: '',
+    price: '', stock: '',
+    categorySlug: 'women',
+    concentration: 'Eau de Parfum',
+    size: '100ml',
+    family: '',
+    description: '',
+    topNotes: '', heartNotes: '', baseNotes: '',
+  });
+
+  const update = <K extends keyof ProductFormValues>(k: K, v: ProductFormValues[K]) =>
+    setForm((prev) => ({ ...prev, [k]: v }));
+
+  const valid =
+    form.nameFr.trim() && form.nameAr.trim() && form.nameEn.trim() &&
+    form.price.trim() && form.stock.trim();
+
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(26,26,26,0.6)', zIndex: 200,
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        padding: '40px 16px', overflowY: 'auto',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'var(--cream)', padding: 32, maxWidth: 720, width: '100%',
+          maxHeight: '90vh', overflowY: 'auto',
+        }}
+      >
+        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <div>
+            <span className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.products.toUpperCase()}</span>
+            <h2 className="display italic" style={{ fontSize: 28, fontWeight: 400, marginTop: 4 }}>
+              {dict.admin.formAddTitle}
+            </h2>
+          </div>
+          <button
+            onClick={onCancel}
+            aria-label={dict.admin.formCancel}
+            style={{ width: 40, height: 40, fontSize: 22, color: 'var(--warm-gray)' }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <Field label={dict.admin.formNameFr} value={form.nameFr} onChange={(v) => update('nameFr', v)} />
+          <Field label={dict.admin.formNameAr} value={form.nameAr} onChange={(v) => update('nameAr', v)} />
+          <Field label={dict.admin.formNameEn} value={form.nameEn} onChange={(v) => update('nameEn', v)} />
+
+          <div className="field">
+            <label>{dict.admin.formCategory}</label>
+            <select
+              value={form.categorySlug}
+              onChange={(e) => update('categorySlug', e.target.value as CategorySlug)}
+              style={{
+                width: '100%', padding: '14px 0', background: 'transparent',
+                border: 'none', borderBottom: '1px solid var(--hairline)',
+                fontSize: 15, outline: 'none', fontFamily: 'inherit',
+              }}
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c.slug} value={c.slug}>{categoryName(c, locale)}</option>
+              ))}
+            </select>
+          </div>
+
+          <Field label={dict.admin.formPrice} value={form.price} onChange={(v) => update('price', v)} type="number" />
+          <Field label={dict.admin.formStock} value={form.stock} onChange={(v) => update('stock', v)} type="number" />
+          <Field label={dict.admin.formFamily} value={form.family} onChange={(v) => update('family', v)} placeholder="Floral, Oriental…" />
+          <Field label={dict.admin.formConcentration} value={form.concentration} onChange={(v) => update('concentration', v)} />
+          <Field label={dict.admin.formSize} value={form.size} onChange={(v) => update('size', v)} />
+
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label>{dict.admin.formDescription}</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => update('description', e.target.value)}
+              style={{
+                width: '100%', minHeight: 80, padding: 12,
+                background: 'var(--ivory)', border: '1px solid var(--hairline)',
+                outline: 'none', fontSize: 14, fontFamily: 'inherit', resize: 'vertical',
+              }}
+            />
+          </div>
+
+          <Field label={dict.admin.formTopNotes} value={form.topNotes} onChange={(v) => update('topNotes', v)} span={2} placeholder="Bergamote, Rose, Cardamome" />
+          <Field label={dict.admin.formHeartNotes} value={form.heartNotes} onChange={(v) => update('heartNotes', v)} span={2} placeholder="Jasmin, Cèdre, Iris" />
+          <Field label={dict.admin.formBaseNotes} value={form.baseNotes} onChange={(v) => update('baseNotes', v)} span={2} placeholder="Musc, Ambre, Vanille" />
+        </div>
+
+        <div className="row" style={{ justifyContent: 'flex-end', gap: 12, marginTop: 28 }}>
+          <button onClick={onCancel} className="btn btn-secondary">{dict.admin.formCancel}</button>
+          <button
+            onClick={() => valid && onSave(form)}
+            className="btn btn-primary"
+            disabled={!valid}
+            style={{ opacity: valid ? 1 : 0.5 }}
+          >
+            {dict.admin.formSave}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1252,7 +1509,7 @@ function AdminCustomers({ dict }: { dict: Dict }) {
   );
 }
 
-function AdminCategories({ dict }: { dict: Dict }) {
+function AdminCategories({ dict, locale }: { dict: Dict; locale: Locale }) {
   return (
     <div className="col" style={{ gap: 24 }}>
       <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>{dict.admin.categories}</h1>
@@ -1271,12 +1528,12 @@ function AdminCategories({ dict }: { dict: Dict }) {
             >
               <span className="mono" style={{ fontSize: 10, letterSpacing: '0.22em' }}>0{i + 1}</span>
               <div>
-                <h3 className="display italic" style={{ fontSize: 32, fontWeight: 400 }}>{c.fr}</h3>
-                <p className="caption" style={{ marginTop: 10 }}>{count} produits</p>
+                <h3 className="display italic" style={{ fontSize: 32, fontWeight: 400 }}>{categoryName(c, locale)}</h3>
+                <p className="caption" style={{ marginTop: 10 }}>{count} {dict.admin.productsLc}</p>
               </div>
               <div className="row" style={{ gap: 16 }}>
-                <button className="caption" style={{ borderBottom: '1px solid currentColor', paddingBottom: 2 }}>ÉDITER</button>
-                <button className="caption" style={{ opacity: 0.6 }}>VOIR</button>
+                <button className="caption" style={{ borderBottom: '1px solid currentColor', paddingBottom: 2 }}>{dict.admin.edit.toUpperCase()}</button>
+                <button className="caption" style={{ opacity: 0.6 }}>{dict.admin.view.toUpperCase()}</button>
               </div>
             </div>
           );
@@ -1287,7 +1544,7 @@ function AdminCategories({ dict }: { dict: Dict }) {
             color: 'var(--warm-gray)', fontSize: 14, letterSpacing: '0.12em',
           }}
         >
-          + NOUVELLE CATÉGORIE
+          {dict.admin.newCategory.toUpperCase()}
         </button>
       </div>
     </div>
@@ -1300,25 +1557,25 @@ function AdminSettings({ dict }: { dict: Dict }) {
       <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>{dict.admin.settings}</h1>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
         <div style={{ background: 'var(--ivory)', padding: 32 }}>
-          <h3 className="display italic" style={{ fontSize: 24, fontWeight: 400 }}>Identité</h3>
+          <h3 className="display italic" style={{ fontSize: 24, fontWeight: 400 }}>{dict.admin.identity}</h3>
           <div className="col gap-md" style={{ marginTop: 24 }}>
-            <Field label="Nom de la boutique" value="A&M Perfume" onChange={() => {}} />
-            <Field label="Téléphone" value="+222 38 12 04 04" onChange={() => {}} />
-            <Field label="E-mail" value="contact@amperfume.mr" onChange={() => {}} />
-            <Field label="Adresse" value="Nouakchott, Mauritanie" onChange={() => {}} />
+            <Field label={dict.admin.shopName} value="A&M Perfume" onChange={() => {}} />
+            <Field label={dict.admin.phoneLabel} value="+222 38 12 04 04" onChange={() => {}} />
+            <Field label={dict.admin.emailLabel} value="contact@amperfume.mr" onChange={() => {}} />
+            <Field label={dict.admin.addressLabel} value="Nouakchott, Mauritanie" onChange={() => {}} />
           </div>
         </div>
         <div style={{ background: 'var(--ivory)', padding: 32 }}>
-          <h3 className="display italic" style={{ fontSize: 24, fontWeight: 400 }}>Numéros de paiement</h3>
+          <h3 className="display italic" style={{ fontSize: 24, fontWeight: 400 }}>{dict.admin.paymentNumbers}</h3>
           <div className="col gap-md" style={{ marginTop: 24 }}>
             <Field label="Bankily" value="22 33 44 55" onChange={() => {}} />
             <Field label="Sedad" value="36 11 88 22" onChange={() => {}} />
             <Field label="Masrvi" value="42 09 77 14" onChange={() => {}} />
-            <Field label="WhatsApp (lien officiel)" value="https://www.tiktok.com/link/v2?aid=1988&lang=fr&scene=bio_url&target=https%3A%2F%2Fwa.me%2Fmessage%2FRKG2ZIH3O7XHL1" onChange={() => {}} />
+            <Field label={dict.admin.whatsappOfficial} value="https://www.tiktok.com/link/v2?aid=1988&lang=fr&scene=bio_url&target=https%3A%2F%2Fwa.me%2Fmessage%2FRKG2ZIH3O7XHL1" onChange={() => {}} />
           </div>
         </div>
       </div>
-      <button className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Enregistrer</button>
+      <button className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>{dict.admin.save}</button>
     </div>
   );
 }

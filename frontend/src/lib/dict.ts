@@ -69,6 +69,29 @@ export interface Dict {
     confirmPayment: string; rejectPayment: string;
     rejectReason: string; cancel: string; submit: string;
     statusTimeline: string; goShop: string;
+    lang: string;
+    viewAll: string; verifying: string;
+    greeting: string; pendingMsg: string;
+    lowStockTitle: string;
+    quickActionEyebrow: string; addPerfume: string; addPerfumeSub: string; newProductCta: string;
+    salesChart: string; salesChartTrend: string;
+    searchPlaceholder: string;
+    allOrders: string; placedOn: string;
+    markPreparing: string; markShipped: string; markDelivered: string;
+    founder: string;
+    newProduct: string;
+    colName: string; colSku: string; colCategory: string; colPrice: string; colStock: string; colStatus: string;
+    active: string; edit: string; view: string;
+    productsLc: string; newCategory: string;
+    identity: string; paymentNumbers: string;
+    shopName: string; phoneLabel: string; emailLabel: string; addressLabel: string; whatsappOfficial: string;
+    save: string;
+    formAddTitle: string; formCancel: string; formSave: string;
+    formNameFr: string; formNameAr: string; formNameEn: string;
+    formPrice: string; formStock: string; formCategory: string;
+    formConcentration: string; formSize: string; formFamily: string;
+    formDescription: string;
+    formTopNotes: string; formHeartNotes: string; formBaseNotes: string;
   };
   status: {
     PENDING: string; CONFIRMED: string; PREPARING: string;
@@ -145,6 +168,31 @@ const fr: Dict = {
     rejectReason: 'Motif du refus', cancel: 'Annuler', submit: 'Envoyer',
     statusTimeline: 'Historique du statut',
     goShop: '← Retour au site',
+    lang: 'Langue',
+    viewAll: 'Voir tout →', verifying: 'Vérification…',
+    greeting: 'Bonjour', pendingMsg: 'commande(s) en attente de vérification.',
+    lowStockTitle: 'Stock faible',
+    quickActionEyebrow: 'Action rapide', addPerfume: 'Ajouter un parfum',
+    addPerfumeSub: 'Composition, notes, prix, stock — en 3 minutes.',
+    newProductCta: 'Nouveau produit →',
+    salesChart: 'Ventes sur 30 jours', salesChartTrend: '+12,4% vs mois précédent',
+    searchPlaceholder: 'Rechercher une commande, un produit…',
+    allOrders: 'Toutes les commandes', placedOn: 'Passée le',
+    markPreparing: 'Marquer en préparation →', markShipped: 'Marquer expédiée →', markDelivered: 'Marquer livrée ✓',
+    founder: 'Fondateur',
+    newProduct: '+ Nouveau produit',
+    colName: 'Nom', colSku: 'SKU', colCategory: 'Catégorie', colPrice: 'Prix', colStock: 'Stock', colStatus: 'Statut',
+    active: 'Actif', edit: 'Éditer', view: 'Voir',
+    productsLc: 'produits', newCategory: '+ Nouvelle catégorie',
+    identity: 'Identité', paymentNumbers: 'Numéros de paiement',
+    shopName: 'Nom de la boutique', phoneLabel: 'Téléphone', emailLabel: 'E-mail', addressLabel: 'Adresse', whatsappOfficial: 'WhatsApp (lien officiel)',
+    save: 'Enregistrer',
+    formAddTitle: 'Nouveau produit', formCancel: 'Annuler', formSave: 'Enregistrer',
+    formNameFr: 'Nom (FR)', formNameAr: 'Nom (AR)', formNameEn: 'Nom (EN)',
+    formPrice: 'Prix (MRU)', formStock: 'Stock', formCategory: 'Catégorie',
+    formConcentration: 'Concentration', formSize: 'Contenance', formFamily: 'Famille',
+    formDescription: 'Description',
+    formTopNotes: 'Notes de tête (séparées par virgule)', formHeartNotes: 'Notes de cœur (séparées par virgule)', formBaseNotes: 'Notes de fond (séparées par virgule)',
   },
   status: { PENDING: 'À vérifier', CONFIRMED: 'Confirmée', PREPARING: 'En préparation', SHIPPED: 'Expédiée', DELIVERED: 'Livrée', REJECTED: 'Rejetée', CANCELLED: 'Annulée' },
   common: { close: 'Fermer', loading: 'Chargement…', currency: 'MRU' },
@@ -218,6 +266,31 @@ const en: Dict = {
     rejectReason: 'Rejection reason', cancel: 'Cancel', submit: 'Send',
     statusTimeline: 'Status history',
     goShop: '← Back to site',
+    lang: 'Language',
+    viewAll: 'See all →', verifying: 'Verifying…',
+    greeting: 'Hello', pendingMsg: 'order(s) pending verification.',
+    lowStockTitle: 'Low stock',
+    quickActionEyebrow: 'Quick action', addPerfume: 'Add a fragrance',
+    addPerfumeSub: 'Composition, notes, price, stock — in 3 minutes.',
+    newProductCta: 'New product →',
+    salesChart: 'Sales over 30 days', salesChartTrend: '+12.4% vs previous month',
+    searchPlaceholder: 'Search an order, a product…',
+    allOrders: 'All orders', placedOn: 'Placed on',
+    markPreparing: 'Mark as preparing →', markShipped: 'Mark as shipped →', markDelivered: 'Mark as delivered ✓',
+    founder: 'Founder',
+    newProduct: '+ New product',
+    colName: 'Name', colSku: 'SKU', colCategory: 'Category', colPrice: 'Price', colStock: 'Stock', colStatus: 'Status',
+    active: 'Active', edit: 'Edit', view: 'View',
+    productsLc: 'products', newCategory: '+ New category',
+    identity: 'Identity', paymentNumbers: 'Payment numbers',
+    shopName: 'Shop name', phoneLabel: 'Phone', emailLabel: 'E-mail', addressLabel: 'Address', whatsappOfficial: 'WhatsApp (official link)',
+    save: 'Save',
+    formAddTitle: 'New product', formCancel: 'Cancel', formSave: 'Save',
+    formNameFr: 'Name (FR)', formNameAr: 'Name (AR)', formNameEn: 'Name (EN)',
+    formPrice: 'Price (MRU)', formStock: 'Stock', formCategory: 'Category',
+    formConcentration: 'Concentration', formSize: 'Size', formFamily: 'Family',
+    formDescription: 'Description',
+    formTopNotes: 'Top notes (comma separated)', formHeartNotes: 'Heart notes (comma separated)', formBaseNotes: 'Base notes (comma separated)',
   },
   status: { PENDING: 'To verify', CONFIRMED: 'Confirmed', PREPARING: 'Preparing', SHIPPED: 'Shipped', DELIVERED: 'Delivered', REJECTED: 'Rejected', CANCELLED: 'Cancelled' },
   common: { close: 'Close', loading: 'Loading…', currency: 'MRU' },
@@ -291,6 +364,31 @@ const ar: Dict = {
     rejectReason: 'سبب الرفض', cancel: 'إلغاء', submit: 'إرسال',
     statusTimeline: 'سجل الحالة',
     goShop: '← العودة إلى المتجر',
+    lang: 'اللغة',
+    viewAll: 'عرض الكل ←', verifying: 'جارٍ التحقق…',
+    greeting: 'مرحباً', pendingMsg: 'طلب بانتظار التحقق.',
+    lowStockTitle: 'مخزون منخفض',
+    quickActionEyebrow: 'إجراء سريع', addPerfume: 'إضافة عطر',
+    addPerfumeSub: 'تركيبة، نوتات، سعر، مخزون — في 3 دقائق.',
+    newProductCta: 'منتج جديد ←',
+    salesChart: 'المبيعات خلال 30 يوماً', salesChartTrend: '+12.4% مقابل الشهر السابق',
+    searchPlaceholder: 'ابحث عن طلب، منتج…',
+    allOrders: 'كل الطلبات', placedOn: 'صدر بتاريخ',
+    markPreparing: 'وضع قيد التحضير ←', markShipped: 'وضع كمشحون ←', markDelivered: 'وضع كمسلَّم ✓',
+    founder: 'المؤسس',
+    newProduct: '+ منتج جديد',
+    colName: 'الاسم', colSku: 'الرمز', colCategory: 'الفئة', colPrice: 'السعر', colStock: 'المخزون', colStatus: 'الحالة',
+    active: 'نشط', edit: 'تعديل', view: 'عرض',
+    productsLc: 'منتجات', newCategory: '+ فئة جديدة',
+    identity: 'الهوية', paymentNumbers: 'أرقام الدفع',
+    shopName: 'اسم المتجر', phoneLabel: 'الهاتف', emailLabel: 'البريد الإلكتروني', addressLabel: 'العنوان', whatsappOfficial: 'واتساب (رابط رسمي)',
+    save: 'حفظ',
+    formAddTitle: 'منتج جديد', formCancel: 'إلغاء', formSave: 'حفظ',
+    formNameFr: 'الاسم (FR)', formNameAr: 'الاسم (AR)', formNameEn: 'الاسم (EN)',
+    formPrice: 'السعر (أوقية)', formStock: 'المخزون', formCategory: 'الفئة',
+    formConcentration: 'التركيز', formSize: 'الحجم', formFamily: 'العائلة',
+    formDescription: 'الوصف',
+    formTopNotes: 'نوتات القمة (مفصولة بفاصلة)', formHeartNotes: 'نوتات القلب (مفصولة بفاصلة)', formBaseNotes: 'نوتات القاعدة (مفصولة بفاصلة)',
   },
   status: { PENDING: 'بانتظار التحقق', CONFIRMED: 'مؤكدة', PREPARING: 'قيد التحضير', SHIPPED: 'تم الشحن', DELIVERED: 'تم التسليم', REJECTED: 'مرفوضة', CANCELLED: 'ملغاة' },
   common: { close: 'إغلاق', loading: 'جارٍ التحميل…', currency: 'أوقية' },
