@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   CATEGORIES, DEMO_ORDERS, HUE_BG, HUE_BOTTLE, PAYMENT_METHODS, PRODUCTS,
   findProduct, type DemoOrder, type OrderStatus, type Product, type CategorySlug,
@@ -1317,6 +1317,7 @@ function AdminProducts({
 }) {
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [showForm, setShowForm] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
     if (openFormSignal) {
@@ -1367,10 +1368,26 @@ function AdminProducts({
     };
     setProducts([newProduct, ...products]);
     setShowForm(false);
+    setSuccessMsg(dict.admin.formSuccess);
+    setTimeout(() => setSuccessMsg(''), 4000);
   };
 
   return (
     <div className="col" style={{ gap: 24 }}>
+      {successMsg && (
+        <div
+          style={{
+            position: 'fixed', bottom: 88, insetInlineStart: '50%', transform: 'translateX(-50%)',
+            zIndex: 300, background: 'var(--charcoal)', color: 'var(--cream)',
+            padding: '14px 28px', fontSize: 14, letterSpacing: '0.06em',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)', whiteSpace: 'nowrap',
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}
+        >
+          <span style={{ color: 'var(--accent)', fontSize: 18 }}>✓</span>
+          {successMsg}
+        </div>
+      )}
       <div className="flex flex-wrap gap-4 justify-between items-end">
         <h1 className="display italic" style={{ fontSize: 'clamp(26px, 6vw, 40px)', fontWeight: 300 }}>{dict.admin.products}</h1>
         <button className="btn btn-primary" onClick={() => setShowForm(true)}>
@@ -1475,7 +1492,11 @@ interface ProductFormValues {
   topNotes: string;
   heartNotes: string;
   baseNotes: string;
+  images: string[];
 }
+
+const CONCENTRATIONS = ['Eau de Parfum', 'Eau de Toilette', 'Extrait de Parfum'];
+const SIZES = ['30ml', '50ml', '100ml'];
 
 function ProductFormModal({
   dict, locale, onCancel, onSave,
@@ -1485,6 +1506,9 @@ function ProductFormModal({
   onCancel: () => void;
   onSave: (values: ProductFormValues) => void;
 }) {
+  const imgInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   const [form, setForm] = useState<ProductFormValues>({
     nameFr: '', nameAr: '', nameEn: '',
     price: '', stock: '',
@@ -1494,94 +1518,204 @@ function ProductFormModal({
     family: '',
     description: '',
     topNotes: '', heartNotes: '', baseNotes: '',
+    images: [],
   });
 
   const update = <K extends keyof ProductFormValues>(k: K, v: ProductFormValues[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
+  const addImages = (files: FileList | null) => {
+    if (!files) return;
+    const remaining = 4 - form.images.length;
+    if (remaining <= 0) return;
+    const toAdd = Array.from(files).slice(0, remaining);
+    toAdd.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setForm((prev) => ({
+          ...prev,
+          images: prev.images.length < 4 ? [...prev.images, reader.result as string] : prev.images,
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (idx: number) =>
+    setForm((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
+
   const valid =
     form.nameFr.trim() && form.nameAr.trim() && form.nameEn.trim() &&
     form.price.trim() && form.stock.trim();
+
+  const selectStyle: React.CSSProperties = {
+    width: '100%', padding: '14px 0', background: 'transparent',
+    border: 'none', borderBottom: '1px solid var(--hairline)',
+    fontSize: 15, outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
+  };
 
   return (
     <div
       onClick={onCancel}
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(26,26,26,0.6)', zIndex: 200,
+        position: 'fixed', inset: 0, background: 'rgba(26,26,26,0.65)', zIndex: 200,
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-        padding: '40px 16px', overflowY: 'auto',
+        padding: '20px 12px 40px', overflowY: 'auto',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'var(--cream)', padding: 32, maxWidth: 720, width: '100%',
-          maxHeight: '90vh', overflowY: 'auto',
+          background: 'var(--cream)', padding: 'clamp(20px,4vw,36px)', maxWidth: 740, width: '100%',
         }}
       >
-        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        {/* Header */}
+        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
           <div>
             <span className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.products.toUpperCase()}</span>
-            <h2 className="display italic" style={{ fontSize: 28, fontWeight: 400, marginTop: 4 }}>
+            <h2 className="display italic" style={{ fontSize: 'clamp(22px,4vw,28px)', fontWeight: 400, marginTop: 4 }}>
               {dict.admin.formAddTitle}
             </h2>
           </div>
-          <button
-            onClick={onCancel}
-            aria-label={dict.admin.formCancel}
-            style={{ width: 40, height: 40, fontSize: 22, color: 'var(--warm-gray)' }}
-          >
+          <button onClick={onCancel} aria-label={dict.admin.formCancel} style={{ width: 44, height: 44, fontSize: 22, color: 'var(--warm-gray)' }}>
             ✕
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <Field label={dict.admin.formNameFr} value={form.nameFr} onChange={(v) => update('nameFr', v)} />
-          <Field label={dict.admin.formNameAr} value={form.nameAr} onChange={(v) => update('nameAr', v)} />
-          <Field label={dict.admin.formNameEn} value={form.nameEn} onChange={(v) => update('nameEn', v)} />
+        <div className="col" style={{ gap: 28 }}>
+          {/* ── Image upload ─────────────────────────────── */}
+          <div className="col" style={{ gap: 12 }}>
+            <div>
+              <span className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.formImages.toUpperCase()}</span>
+              <p style={{ fontSize: 12, color: 'var(--warm-gray)', marginTop: 4 }}>{dict.admin.formImagesMax}</p>
+            </div>
 
-          <div className="field">
-            <label>{dict.admin.formCategory}</label>
-            <select
-              value={form.categorySlug}
-              onChange={(e) => update('categorySlug', e.target.value as CategorySlug)}
-              style={{
-                width: '100%', padding: '14px 0', background: 'transparent',
-                border: 'none', borderBottom: '1px solid var(--hairline)',
-                fontSize: 15, outline: 'none', fontFamily: 'inherit',
-              }}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c.slug} value={c.slug}>{categoryName(c, locale)}</option>
-              ))}
-            </select>
+            {/* Thumbnails */}
+            {form.images.length > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {form.images.map((src, idx) => (
+                  <div key={idx} style={{ position: 'relative', width: 80, height: 80 }}>
+                    <img
+                      src={src}
+                      alt={`photo ${idx + 1}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', border: idx === 0 ? '2px solid var(--accent)' : '1px solid var(--hairline)', display: 'block' }}
+                    />
+                    {idx === 0 && (
+                      <span className="mono" style={{ position: 'absolute', bottom: 0, insetInline: 0, background: 'var(--accent)', color: 'var(--cream)', fontSize: 8, textAlign: 'center', padding: '2px 0', letterSpacing: '0.1em' }}>
+                        MAIN
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      style={{
+                        position: 'absolute', top: -8, insetInlineEnd: -8, width: 22, height: 22,
+                        background: 'var(--charcoal)', color: 'var(--cream)', borderRadius: '50%',
+                        fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                      aria-label="Supprimer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Drop zone */}
+            {form.images.length < 4 && (
+              <div
+                onClick={() => imgInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setIsDragging(false); addImages(e.dataTransfer.files); }}
+                style={{
+                  border: `1px dashed ${isDragging ? 'var(--accent)' : 'var(--hairline)'}`,
+                  padding: '28px 20px', textAlign: 'center', cursor: 'pointer',
+                  background: isDragging ? 'rgba(184,146,74,0.05)' : 'var(--ivory)',
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}
+              >
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ margin: '0 auto 10px' }}>
+                  <rect x="3" y="3" width="18" height="18" />
+                  <path d="M3 16l5-5 4 4 3-3 6 4" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                </svg>
+                <p style={{ fontSize: 13, color: 'var(--charcoal)' }}>{dict.admin.formImagesHint}</p>
+                <p className="caption" style={{ color: 'var(--warm-gray)', marginTop: 6 }}>
+                  {4 - form.images.length} {dict.admin.formImages.split('(')[0].trim().toLowerCase()} restant{4 - form.images.length > 1 ? 'es' : 'e'}
+                </p>
+              </div>
+            )}
+            <input ref={imgInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => addImages(e.target.files)} />
           </div>
 
-          <Field label={dict.admin.formPrice} value={form.price} onChange={(v) => update('price', v)} type="number" />
-          <Field label={dict.admin.formStock} value={form.stock} onChange={(v) => update('stock', v)} type="number" />
-          <Field label={dict.admin.formFamily} value={form.family} onChange={(v) => update('family', v)} placeholder="Floral, Oriental…" />
-          <Field label={dict.admin.formConcentration} value={form.concentration} onChange={(v) => update('concentration', v)} />
-          <Field label={dict.admin.formSize} value={form.size} onChange={(v) => update('size', v)} />
+          {/* ── Names ────────────────────────────────────── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+            <Field label={`${dict.admin.formNameFr} *`} value={form.nameFr} onChange={(v) => update('nameFr', v)} />
+            <Field label={`${dict.admin.formNameAr} *`} value={form.nameAr} onChange={(v) => update('nameAr', v)} />
+            <Field label={`${dict.admin.formNameEn} *`} value={form.nameEn} onChange={(v) => update('nameEn', v)} />
 
-          <div className="field" style={{ gridColumn: '1 / -1' }}>
-            <label>{dict.admin.formDescription}</label>
-            <textarea
-              value={form.description}
-              onChange={(e) => update('description', e.target.value)}
-              style={{
-                width: '100%', minHeight: 80, padding: 12,
-                background: 'var(--ivory)', border: '1px solid var(--hairline)',
-                outline: 'none', fontSize: 14, fontFamily: 'inherit', resize: 'vertical',
-              }}
-            />
+            <div className="field">
+              <label>{dict.admin.formCategory}</label>
+              <select value={form.categorySlug} onChange={(e) => update('categorySlug', e.target.value as CategorySlug)} style={selectStyle}>
+                {CATEGORIES.map((c) => (
+                  <option key={c.slug} value={c.slug}>{categoryName(c, locale)}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <Field label={dict.admin.formTopNotes} value={form.topNotes} onChange={(v) => update('topNotes', v)} span={2} placeholder="Bergamote, Rose, Cardamome" />
-          <Field label={dict.admin.formHeartNotes} value={form.heartNotes} onChange={(v) => update('heartNotes', v)} span={2} placeholder="Jasmin, Cèdre, Iris" />
-          <Field label={dict.admin.formBaseNotes} value={form.baseNotes} onChange={(v) => update('baseNotes', v)} span={2} placeholder="Musc, Ambre, Vanille" />
+          {/* ── Price / Stock / Concentration / Size ─────── */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-5">
+            <Field label={`${dict.admin.formPrice} *`} value={form.price} onChange={(v) => update('price', v)} type="number" />
+            <Field label={`${dict.admin.formStock} *`} value={form.stock} onChange={(v) => update('stock', v)} type="number" />
+
+            <div className="field">
+              <label>{dict.admin.formConcentration}</label>
+              <select value={form.concentration} onChange={(e) => update('concentration', e.target.value)} style={selectStyle}>
+                {CONCENTRATIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            <div className="field">
+              <label>{dict.admin.formSize}</label>
+              <select value={form.size} onChange={(e) => update('size', e.target.value)} style={selectStyle}>
+                {SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* ── Family + Description ─────────────────────── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+            <Field label={dict.admin.formFamily} value={form.family} onChange={(v) => update('family', v)} placeholder="Floral, Oriental…" />
+            <div className="field md:col-span-1">
+              <label>{dict.admin.formDescription}</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => update('description', e.target.value)}
+                style={{
+                  width: '100%', minHeight: 80, padding: 10,
+                  background: 'var(--ivory)', border: '1px solid var(--hairline)',
+                  outline: 'none', fontSize: 14, fontFamily: 'inherit', resize: 'vertical',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* ── Notes ────────────────────────────────────── */}
+          <div className="col" style={{ gap: 16 }}>
+            <span className="caption" style={{ color: 'var(--accent)' }}>NOTES OLFACTIVES</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
+              <Field label={dict.admin.formTopNotes} value={form.topNotes} onChange={(v) => update('topNotes', v)} placeholder="Bergamote, Rose…" />
+              <Field label={dict.admin.formHeartNotes} value={form.heartNotes} onChange={(v) => update('heartNotes', v)} placeholder="Jasmin, Cèdre…" />
+              <Field label={dict.admin.formBaseNotes} value={form.baseNotes} onChange={(v) => update('baseNotes', v)} placeholder="Musc, Ambre…" />
+            </div>
+          </div>
         </div>
 
-        <div className="row" style={{ justifyContent: 'flex-end', gap: 12, marginTop: 28 }}>
+        {/* ── Actions ──────────────────────────────────────── */}
+        <div className="row" style={{ justifyContent: 'flex-end', gap: 12, marginTop: 32 }}>
           <button onClick={onCancel} className="btn btn-secondary">{dict.admin.formCancel}</button>
           <button
             onClick={() => valid && onSave(form)}

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'; // useRef used in ProofStep
 import { findProduct, PAYMENT_METHODS } from '@/lib/data';
 import { formatPrice, productName, type Locale } from '@/lib/i18n';
 import type { Dict } from '@/lib/dict';
@@ -25,9 +25,6 @@ interface Delivery {
   details: string;
   lat: number | null;
   lng: number | null;
-  pinX?: number;
-  pinY?: number;
-  useMap: boolean;
 }
 
 interface LoggedInProfile {
@@ -85,7 +82,6 @@ export function CheckoutFlow({ locale, dict }: FlowProps) {
     details: '',
     lat: null,
     lng: null,
-    useMap: true,
   });
 
   useEffect(() => {
@@ -262,7 +258,11 @@ interface DeliveryStepProps {
 type GpsStatus = 'idle' | 'requesting' | 'success' | 'denied' | 'unavailable';
 
 function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: DeliveryStepProps) {
-  const canNext = delivery.fullName.trim() && delivery.phone.trim() && delivery.neighborhood.trim();
+  const canNext =
+    delivery.fullName.trim().length > 0 &&
+    delivery.phone.trim().length > 0 &&
+    delivery.city.trim().length > 0;
+
   const [gpsStatus, setGpsStatus] = useState<GpsStatus>('idle');
   const [gpsError, setGpsError] = useState<string | null>(null);
 
@@ -270,7 +270,6 @@ function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: Deliv
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       setGpsStatus('unavailable');
       setGpsError(dict.checkout.gpsUnavailable);
-      setDelivery({ ...delivery, useMap: false });
       return;
     }
     setGpsStatus('requesting');
@@ -294,9 +293,9 @@ function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: Deliv
               a.neighbourhood || a.suburb || a.quarter || a.city_district || a.residential || neighborhood;
           }
         } catch {
-          // Reverse geocoding failed; keep coords, leave existing city/neighborhood.
+          /* reverse geocoding failed – keep existing city/neighborhood */
         }
-        setDelivery({ ...delivery, lat, lng, city, neighborhood, useMap: true });
+        setDelivery({ ...delivery, lat, lng, city, neighborhood });
         setGpsStatus('success');
       },
       (err) => {
@@ -307,115 +306,85 @@ function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: Deliv
           setGpsStatus('unavailable');
           setGpsError(dict.checkout.gpsUnavailable);
         }
-        setDelivery({ ...delivery, useMap: false });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
   };
+
   return (
     <div className="col gap-lg p-5 md:p-10 lg:p-12" style={{ background: 'var(--ivory)' }}>
+      {/* ── Header ─────────────────────────────────────────────── */}
       <div>
         <span className="caption" style={{ color: 'var(--accent)' }}>01 — {dict.checkout.step1}</span>
-        <h2 className="display italic" style={{ fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 300, marginTop: 10 }}>
+        <h2 className="display italic" style={{ fontSize: 'clamp(26px, 6vw, 40px)', fontWeight: 300, marginTop: 10 }}>
           Vos coordonnées
         </h2>
         <p style={{ marginTop: 10, color: 'var(--warm-gray)', fontSize: 14, lineHeight: 1.6 }}>
           {isLoggedIn
             ? 'Pré‑remplies depuis votre profil — modifiables à tout moment.'
-            : 'Pas de compte requis. Nous utilisons ces coordonnées uniquement pour traiter votre commande.'}
+            : 'Pas de compte requis. Vos données servent uniquement à traiter votre commande.'}
         </p>
       </div>
 
-      <div
-        style={{
-          background: 'var(--cream)',
-          border: '1px solid var(--hairline)',
-          padding: 20,
-          borderInlineStart: '3px solid var(--accent)',
-        }}
-      >
+      {/* ── Guest / logged-in identity block ───────────────────── */}
+      <div style={{ background: 'var(--cream)', border: '1px solid var(--hairline)', padding: 20, borderInlineStart: '3px solid var(--accent)' }}>
         <div className="row" style={{ alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <span className="caption" style={{ color: 'var(--accent)' }}>
             {isLoggedIn ? 'CONNECTÉ' : 'COMMANDE INVITÉ'}
           </span>
           {!isLoggedIn && (
-            <Link
-              href="#"
-              className="caption"
-              style={{ color: 'var(--warm-gray)', textDecoration: 'underline', textUnderlineOffset: 3 }}
-            >
+            <Link href="#" className="caption" style={{ color: 'var(--warm-gray)', textDecoration: 'underline', textUnderlineOffset: 3 }}>
               J&apos;ai déjà un compte
             </Link>
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5" style={{ marginTop: 16 }}>
-          <Field
-            label={`${dict.checkout.fullName} *`}
-            value={delivery.fullName}
-            onChange={(v) => setDelivery({ ...delivery, fullName: v })}
-            placeholder="Fatima Diallo"
-          />
-          <Field
-            label={`${dict.checkout.phone} *`}
-            value={delivery.phone}
-            onChange={(v) => setDelivery({ ...delivery, phone: v })}
-            placeholder="+222 22 33 44 55"
-            type="tel"
-          />
-          <Field
-            label="E‑mail (optionnel, confirmation de commande)"
-            value={delivery.email}
-            onChange={(v) => setDelivery({ ...delivery, email: v })}
-            placeholder="fatima@exemple.mr"
-            type="email"
-            span={2}
-          />
+          <Field label={`${dict.checkout.fullName} *`} value={delivery.fullName} onChange={(v) => setDelivery({ ...delivery, fullName: v })} placeholder="Fatima Diallo" />
+          <Field label={`${dict.checkout.phone} *`} value={delivery.phone} onChange={(v) => setDelivery({ ...delivery, phone: v })} placeholder="+222 22 33 44 55" type="tel" />
+          <Field label="E‑mail (optionnel)" value={delivery.email} onChange={(v) => setDelivery({ ...delivery, email: v })} placeholder="fatima@exemple.mr" type="email" span={2} />
         </div>
       </div>
 
+      {/* ── Address block ───────────────────────────────────────── */}
       <div className="col" style={{ gap: 20 }}>
         <span className="caption" style={{ color: 'var(--accent)' }}>ADRESSE DE LIVRAISON</span>
 
-        <div
-          className="col"
-          style={{
-            gap: 12,
-            background: 'var(--cream)',
-            border: '1px solid var(--hairline)',
-            padding: 16,
-          }}
-        >
-          <div className="row" style={{ alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        {/* GPS button row */}
+        <div className="col" style={{ background: 'var(--cream)', border: '1px solid var(--hairline)', padding: 16, gap: 14 }}>
+          <div className="flex flex-wrap gap-3 items-center">
             <button
               type="button"
-              className="btn"
               onClick={requestLocation}
               disabled={gpsStatus === 'requesting'}
               style={{
-                background: 'var(--charcoal)',
-                color: 'var(--cream)',
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '12px 20px', background: 'var(--charcoal)', color: 'var(--cream)',
+                fontSize: 13, letterSpacing: '0.1em',
                 opacity: gpsStatus === 'requesting' ? 0.6 : 1,
               }}
             >
-              {gpsStatus === 'requesting' ? dict.checkout.gpsRequesting : dict.checkout.gpsButton}
+              {gpsStatus === 'requesting'
+                ? <><SpinnerIcon /> {dict.checkout.gpsRequesting}</>
+                : <>{dict.checkout.gpsButton}</>}
             </button>
+
             {gpsStatus === 'success' && delivery.lat !== null && delivery.lng !== null && (
               <a
                 href={`https://www.google.com/maps?q=${delivery.lat},${delivery.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="caption"
-                style={{ color: 'var(--accent)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+                style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'underline', textUnderlineOffset: 3 }}
               >
                 {dict.checkout.gpsViewMaps}
               </a>
             )}
           </div>
 
+          {/* GPS success: map embed + detected address */}
           {gpsStatus === 'success' && delivery.lat !== null && delivery.lng !== null && (
             <div className="col" style={{ gap: 10 }}>
               <p style={{ fontSize: 13, color: 'var(--warm-gray)' }}>
-                {dict.checkout.gpsDetected}:{' '}
+                ✓ {dict.checkout.gpsDetected}:{' '}
                 <strong style={{ color: 'var(--charcoal)' }}>
                   {[delivery.neighborhood, delivery.city].filter(Boolean).join(', ') || `${delivery.lat}, ${delivery.lng}`}
                 </strong>
@@ -423,7 +392,7 @@ function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: Deliv
               <iframe
                 title="map-preview"
                 src={`https://www.google.com/maps?q=${delivery.lat},${delivery.lng}&z=16&output=embed`}
-                style={{ width: '100%', height: 180, border: '1px solid var(--hairline)' }}
+                style={{ width: '100%', height: 200, border: '1px solid var(--hairline)', display: 'block' }}
                 loading="lazy"
               />
               <span className="mono" style={{ fontSize: 11, color: 'var(--warm-gray)' }}>
@@ -432,14 +401,18 @@ function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: Deliv
             </div>
           )}
 
+          {/* GPS error */}
           {gpsError && gpsStatus !== 'success' && (
-            <p style={{ fontSize: 13, color: 'var(--error, #a05a3c)' }}>{gpsError}</p>
+            <p style={{ fontSize: 13, color: 'var(--error, #a05a3c)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>⚠</span> {gpsError}
+            </p>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-7">
-          <Field label={dict.checkout.city} value={delivery.city} onChange={(v) => setDelivery({ ...delivery, city: v })} />
-          <Field label={`${dict.checkout.neighborhood} *`} value={delivery.neighborhood} onChange={(v) => setDelivery({ ...delivery, neighborhood: v })} placeholder="Tevragh‑Zeina" />
+        {/* City / neighborhood / details fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <Field label={`${dict.checkout.city} *`} value={delivery.city} onChange={(v) => setDelivery({ ...delivery, city: v })} placeholder="Nouakchott" />
+          <Field label={dict.checkout.neighborhood} value={delivery.neighborhood} onChange={(v) => setDelivery({ ...delivery, neighborhood: v })} placeholder="Tevragh‑Zeina" />
           <Field
             label={dict.checkout.details}
             value={delivery.details}
@@ -450,44 +423,28 @@ function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: Deliv
         </div>
       </div>
 
-      <div className="col gap-md">
-        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="caption">{dict.checkout.useMap}</span>
-          <div className="row" style={{ background: 'var(--cream)', border: '1px solid var(--hairline)' }}>
-            <button
-              onClick={() => setDelivery({ ...delivery, useMap: true })}
-              className="caption"
-              style={{
-                padding: '8px 18px',
-                background: delivery.useMap ? 'var(--charcoal)' : 'transparent',
-                color: delivery.useMap ? 'var(--cream)' : 'var(--charcoal)',
-              }}
-            >
-              📍 {dict.checkout.useMap}
-            </button>
-            <button
-              onClick={() => setDelivery({ ...delivery, useMap: false })}
-              className="caption"
-              style={{
-                padding: '8px 18px',
-                background: !delivery.useMap ? 'var(--charcoal)' : 'transparent',
-                color: !delivery.useMap ? 'var(--cream)' : 'var(--charcoal)',
-              }}
-            >
-              ✏️ {dict.checkout.useText}
-            </button>
-          </div>
-        </div>
-        {delivery.useMap && <NouakchottMap delivery={delivery} setDelivery={setDelivery} dict={dict} />}
-        <p className="small">{dict.checkout.mapHint}</p>
-      </div>
-
+      {/* ── Continue ─────────────────────────────────────────────── */}
       <div className="row" style={{ justifyContent: 'flex-end', gap: 16, marginTop: 8 }}>
-        <button className="btn btn-primary" disabled={!canNext} onClick={onNext}>
+        <button
+          className="btn btn-primary"
+          disabled={!canNext}
+          onClick={onNext}
+          style={{ opacity: canNext ? 1 : 0.45 }}
+        >
           {dict.checkout.next} →
         </button>
       </div>
     </div>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+      <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+      <path d="M12 2a10 10 0 0 1 10 10" />
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+    </svg>
   );
 }
 
@@ -510,126 +467,6 @@ export function Field({ label, value, onChange, span = 1, placeholder, type = 't
         onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
         placeholder={placeholder}
       />
-    </div>
-  );
-}
-
-function NouakchottMap({
-  delivery,
-  setDelivery,
-  dict,
-}: {
-  delivery: Delivery;
-  setDelivery: (d: Delivery) => void;
-  dict: Dict;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const x = ((e.clientX - r.left) / r.width) * 100;
-    const y = ((e.clientY - r.top) / r.height) * 100;
-    const lat = 18.1 - (y / 100) * 0.1;
-    const lng = -15.99 + (x / 100) * 0.1;
-    setDelivery({ ...delivery, lat: +lat.toFixed(5), lng: +lng.toFixed(5), pinX: x, pinY: y });
-  };
-
-  const neighborhoods = [
-    { name: 'TEVRAGH-ZEINA', x: 40, y: 26 },
-    { name: 'KSAR', x: 55, y: 22 },
-    { name: 'SEBKHA', x: 38, y: 38 },
-    { name: 'CAPITALE', x: 62, y: 30 },
-    { name: 'RIYAD', x: 78, y: 42 },
-    { name: 'ARAFAT', x: 70, y: 44 },
-  ];
-
-  return (
-    <div
-      ref={ref}
-      onClick={handleClick}
-      style={{
-        position: 'relative', aspectRatio: '16/8', background: '#ece5d6',
-        cursor: 'crosshair', overflow: 'hidden', border: '1px solid var(--hairline)',
-      }}
-    >
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '22%', background: 'linear-gradient(90deg, #b2c2cc, #c8d4dc)' }}>
-        <span className="mono" style={{ position: 'absolute', left: 12, top: 14, fontSize: 9, letterSpacing: '0.2em', color: '#5a6d77' }}>
-          OCÉAN ATLANTIQUE
-        </span>
-      </div>
-      <svg viewBox="0 0 100 50" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-        <path d="M22 0 Q24 8 22 14 Q19 22 23 30 Q26 40 22 50" stroke="#a3b3bc" strokeWidth="0.4" fill="none" />
-        <g stroke="#c8b896" strokeWidth="0.2">
-          <line x1="22" y1="22" x2="100" y2="20" />
-          <line x1="22" y1="32" x2="100" y2="34" />
-          <line x1="40" y1="0" x2="42" y2="50" />
-          <line x1="60" y1="0" x2="62" y2="50" />
-          <line x1="78" y1="0" x2="80" y2="50" />
-        </g>
-        <line x1="22" y1="26" x2="100" y2="26" stroke="#9c8866" strokeWidth="0.5" />
-        <path d="M30 50 Q34 42 38 40 Q44 38 48 32" stroke="#cdd6c4" strokeWidth="1.2" fill="none" />
-      </svg>
-      {neighborhoods.map((n) => (
-        <div
-          key={n.name}
-          style={{ position: 'absolute', left: `${n.x}%`, top: `${n.y}%`, transform: 'translate(-50%,-50%)', pointerEvents: 'none' }}
-        >
-          <span
-            className="mono"
-            style={{
-              fontSize: 9, letterSpacing: '0.18em', color: '#5d4f3a',
-              background: 'rgba(245,239,230,0.7)', padding: '1px 4px',
-            }}
-          >
-            {n.name}
-          </span>
-        </div>
-      ))}
-      <div style={{ position: 'absolute', top: 18, right: 18, width: 40, height: 40, border: '1px solid #5d4f3a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(245,239,230,0.7)' }}>
-        <span className="mono" style={{ fontSize: 9, letterSpacing: '0.1em', color: '#5d4f3a' }}>N</span>
-        <div
-          style={{
-            position: 'absolute', top: -2, left: '50%', transform: 'translateX(-50%)',
-            width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent',
-            borderBottom: '8px solid #5d4f3a',
-          }}
-        />
-      </div>
-      {delivery.lat !== null && delivery.pinX !== undefined && (
-        <div
-          style={{
-            position: 'absolute', left: `${delivery.pinX}%`, top: `${delivery.pinY}%`,
-            transform: 'translate(-50%, -100%)', pointerEvents: 'none',
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-          }}
-        >
-          <div
-            className="mono"
-            style={{
-              fontSize: 10, letterSpacing: '0.14em',
-              background: 'var(--charcoal)', color: 'var(--cream)',
-              padding: '4px 8px', whiteSpace: 'nowrap', marginBottom: 6,
-            }}
-          >
-            {delivery.lat}, {delivery.lng}
-          </div>
-          <svg width="22" height="32" viewBox="0 0 22 32">
-            <path d="M11 0 C4.9 0 0 4.9 0 11 c0 8.6 11 21 11 21 s11-12.4 11-21 c0-6.1-4.9-11-11-11 z M11 15 c-2.2 0-4-1.8-4-4 s1.8-4 4-4 s4 1.8 4 4 s-1.8 4-4 4 z" fill="var(--accent)" stroke="var(--charcoal)" strokeWidth="1" />
-          </svg>
-        </div>
-      )}
-      {delivery.lat !== null && (
-        <div
-          className="mono"
-          style={{
-            position: 'absolute', bottom: 14, left: 14,
-            fontSize: 10, letterSpacing: '0.16em',
-            background: 'var(--cream)', padding: '6px 10px', border: '1px solid var(--hairline)',
-          }}
-        >
-          ✓ {dict.checkout.coordsSaved}
-        </div>
-      )}
     </div>
   );
 }

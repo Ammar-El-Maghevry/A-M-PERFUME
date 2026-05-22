@@ -94,6 +94,8 @@ export interface Dict {
     formConcentration: string; formSize: string; formFamily: string;
     formDescription: string;
     formTopNotes: string; formHeartNotes: string; formBaseNotes: string;
+    formImages: string; formImagesHint: string; formImagesMax: string;
+    formSuccess: string;
   };
   status: {
     PENDING: string; CONFIRMED: string; PREPARING: string;
@@ -201,6 +203,8 @@ const fr: Dict = {
     formConcentration: 'Concentration', formSize: 'Contenance', formFamily: 'Famille',
     formDescription: 'Description',
     formTopNotes: 'Notes de tête (séparées par virgule)', formHeartNotes: 'Notes de cœur (séparées par virgule)', formBaseNotes: 'Notes de fond (séparées par virgule)',
+    formImages: 'Photos du produit (max 4)', formImagesHint: 'Glissez-déposez ou cliquez pour ajouter', formImagesMax: 'JPG · PNG · max 5 Mo · 1ère photo = image principale',
+    formSuccess: 'Produit ajouté avec succès !',
   },
   status: { PENDING: 'À vérifier', CONFIRMED: 'Confirmée', PREPARING: 'En préparation', SHIPPED: 'Expédiée', DELIVERED: 'Livrée', REJECTED: 'Rejetée', CANCELLED: 'Annulée' },
   common: { close: 'Fermer', loading: 'Chargement…', currency: 'MRU' },
@@ -305,6 +309,8 @@ const en: Dict = {
     formConcentration: 'Concentration', formSize: 'Size', formFamily: 'Family',
     formDescription: 'Description',
     formTopNotes: 'Top notes (comma separated)', formHeartNotes: 'Heart notes (comma separated)', formBaseNotes: 'Base notes (comma separated)',
+    formImages: 'Product photos (max 4)', formImagesHint: 'Drag & drop or click to add', formImagesMax: 'JPG · PNG · max 5 MB · 1st photo = main image',
+    formSuccess: 'Product added successfully!',
   },
   status: { PENDING: 'To verify', CONFIRMED: 'Confirmed', PREPARING: 'Preparing', SHIPPED: 'Shipped', DELIVERED: 'Delivered', REJECTED: 'Rejected', CANCELLED: 'Cancelled' },
   common: { close: 'Close', loading: 'Loading…', currency: 'MRU' },
@@ -409,6 +415,8 @@ const ar: Dict = {
     formConcentration: 'التركيز', formSize: 'الحجم', formFamily: 'العائلة',
     formDescription: 'الوصف',
     formTopNotes: 'نوتات القمة (مفصولة بفاصلة)', formHeartNotes: 'نوتات القلب (مفصولة بفاصلة)', formBaseNotes: 'نوتات القاعدة (مفصولة بفاصلة)',
+    formImages: 'صور المنتج (حد أقصى 4)', formImagesHint: 'اسحب وأفلت أو انقر للإضافة', formImagesMax: 'JPG · PNG · حد أقصى 5 ميغا · الصورة الأولى = الصورة الرئيسية',
+    formSuccess: 'تمت إضافة المنتج بنجاح!',
   },
   status: { PENDING: 'بانتظار التحقق', CONFIRMED: 'مؤكدة', PREPARING: 'قيد التحضير', SHIPPED: 'تم الشحن', DELIVERED: 'تم التسليم', REJECTED: 'مرفوضة', CANCELLED: 'ملغاة' },
   common: { close: 'إغلاق', loading: 'جارٍ التحميل…', currency: 'أوقية' },
