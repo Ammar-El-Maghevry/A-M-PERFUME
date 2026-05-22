@@ -39,6 +39,8 @@ export interface Dict {
     step1: string; step2: string; step3: string; step4: string;
     fullName: string; phone: string; city: string; neighborhood: string; details: string;
     mapHint: string; useMap: string; useText: string; coordsSaved: string;
+    gpsButton: string; gpsRequesting: string; gpsDenied: string; gpsUnavailable: string;
+    gpsDetected: string; gpsViewMaps: string;
     next: string; back: string;
     paymentTitle: string; paymentInstruction: string; amountToSend: string;
     proofTitle: string; proofHint: string; uploadCta: string; orDrop: string; proofUploaded: string;
@@ -137,6 +139,12 @@ const fr: Dict = {
     mapHint: 'Cliquez sur la carte pour épingler votre position exacte.',
     useMap: 'Épingler sur la carte', useText: 'Saisir manuellement',
     coordsSaved: 'Position enregistrée',
+    gpsButton: '📍 Utiliser ma position actuelle',
+    gpsRequesting: 'Détection en cours…',
+    gpsDenied: 'Localisation refusée. Veuillez saisir votre adresse manuellement.',
+    gpsUnavailable: 'Localisation non disponible, veuillez saisir votre adresse.',
+    gpsDetected: 'Position détectée',
+    gpsViewMaps: 'Voir sur Google Maps →',
     next: 'Continuer', back: 'Retour',
     paymentTitle: 'Méthode de paiement',
     paymentInstruction: "Envoyez le montant exact ci‑dessous au numéro correspondant, puis téléchargez la capture d'écran à l'étape suivante.",
@@ -235,6 +243,12 @@ const en: Dict = {
     mapHint: 'Click on the map to pin your exact location.',
     useMap: 'Pin on map', useText: 'Enter manually',
     coordsSaved: 'Location saved',
+    gpsButton: '📍 Use my current location',
+    gpsRequesting: 'Detecting…',
+    gpsDenied: 'Location permission denied. Please enter your address manually.',
+    gpsUnavailable: 'Location unavailable, please enter your address.',
+    gpsDetected: 'Location detected',
+    gpsViewMaps: 'View on Google Maps →',
     next: 'Continue', back: 'Back',
     paymentTitle: 'Payment method',
     paymentInstruction: 'Send the exact amount below to the corresponding number, then upload the screenshot in the next step.',
@@ -333,6 +347,12 @@ const ar: Dict = {
     mapHint: 'انقر على الخريطة لتحديد موقعك.',
     useMap: 'تحديد على الخريطة', useText: 'إدخال يدوي',
     coordsSaved: 'تم حفظ الموقع',
+    gpsButton: '📍 استخدم موقعي الحالي',
+    gpsRequesting: 'جارٍ تحديد الموقع…',
+    gpsDenied: 'تم رفض إذن الموقع. الرجاء إدخال عنوانك يدوياً.',
+    gpsUnavailable: 'تحديد الموقع غير متاح، الرجاء إدخال عنوانك.',
+    gpsDetected: 'تم تحديد الموقع',
+    gpsViewMaps: 'عرض على خرائط Google ←',
     next: 'متابعة', back: 'رجوع',
     paymentTitle: 'طريقة الدفع',
     paymentInstruction: 'حوّل المبلغ المحدد إلى الرقم المناسب، ثم ارفع لقطة الشاشة في الخطوة التالية.',

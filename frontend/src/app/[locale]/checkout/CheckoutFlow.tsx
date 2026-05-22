@@ -259,8 +259,59 @@ interface DeliveryStepProps {
   onNext: () => void;
 }
 
+type GpsStatus = 'idle' | 'requesting' | 'success' | 'denied' | 'unavailable';
+
 function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: DeliveryStepProps) {
   const canNext = delivery.fullName.trim() && delivery.phone.trim() && delivery.neighborhood.trim();
+  const [gpsStatus, setGpsStatus] = useState<GpsStatus>('idle');
+  const [gpsError, setGpsError] = useState<string | null>(null);
+
+  const requestLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGpsStatus('unavailable');
+      setGpsError(dict.checkout.gpsUnavailable);
+      setDelivery({ ...delivery, useMap: false });
+      return;
+    }
+    setGpsStatus('requesting');
+    setGpsError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = +pos.coords.latitude.toFixed(5);
+        const lng = +pos.coords.longitude.toFixed(5);
+        let city = delivery.city;
+        let neighborhood = delivery.neighborhood;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=fr`,
+            { headers: { Accept: 'application/json' } },
+          );
+          if (res.ok) {
+            const data = (await res.json()) as { address?: Record<string, string> };
+            const a = data.address ?? {};
+            city = a.city || a.town || a.village || a.county || city;
+            neighborhood =
+              a.neighbourhood || a.suburb || a.quarter || a.city_district || a.residential || neighborhood;
+          }
+        } catch {
+          // Reverse geocoding failed; keep coords, leave existing city/neighborhood.
+        }
+        setDelivery({ ...delivery, lat, lng, city, neighborhood, useMap: true });
+        setGpsStatus('success');
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setGpsStatus('denied');
+          setGpsError(dict.checkout.gpsDenied);
+        } else {
+          setGpsStatus('unavailable');
+          setGpsError(dict.checkout.gpsUnavailable);
+        }
+        setDelivery({ ...delivery, useMap: false });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  };
   return (
     <div className="col gap-lg p-5 md:p-10 lg:p-12" style={{ background: 'var(--ivory)' }}>
       <div>
@@ -324,6 +375,68 @@ function DeliveryStep({ dict, delivery, setDelivery, isLoggedIn, onNext }: Deliv
 
       <div className="col" style={{ gap: 20 }}>
         <span className="caption" style={{ color: 'var(--accent)' }}>ADRESSE DE LIVRAISON</span>
+
+        <div
+          className="col"
+          style={{
+            gap: 12,
+            background: 'var(--cream)',
+            border: '1px solid var(--hairline)',
+            padding: 16,
+          }}
+        >
+          <div className="row" style={{ alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn"
+              onClick={requestLocation}
+              disabled={gpsStatus === 'requesting'}
+              style={{
+                background: 'var(--charcoal)',
+                color: 'var(--cream)',
+                opacity: gpsStatus === 'requesting' ? 0.6 : 1,
+              }}
+            >
+              {gpsStatus === 'requesting' ? dict.checkout.gpsRequesting : dict.checkout.gpsButton}
+            </button>
+            {gpsStatus === 'success' && delivery.lat !== null && delivery.lng !== null && (
+              <a
+                href={`https://www.google.com/maps?q=${delivery.lat},${delivery.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="caption"
+                style={{ color: 'var(--accent)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+              >
+                {dict.checkout.gpsViewMaps}
+              </a>
+            )}
+          </div>
+
+          {gpsStatus === 'success' && delivery.lat !== null && delivery.lng !== null && (
+            <div className="col" style={{ gap: 10 }}>
+              <p style={{ fontSize: 13, color: 'var(--warm-gray)' }}>
+                {dict.checkout.gpsDetected}:{' '}
+                <strong style={{ color: 'var(--charcoal)' }}>
+                  {[delivery.neighborhood, delivery.city].filter(Boolean).join(', ') || `${delivery.lat}, ${delivery.lng}`}
+                </strong>
+              </p>
+              <iframe
+                title="map-preview"
+                src={`https://www.google.com/maps?q=${delivery.lat},${delivery.lng}&z=16&output=embed`}
+                style={{ width: '100%', height: 180, border: '1px solid var(--hairline)' }}
+                loading="lazy"
+              />
+              <span className="mono" style={{ fontSize: 11, color: 'var(--warm-gray)' }}>
+                {delivery.lat}, {delivery.lng}
+              </span>
+            </div>
+          )}
+
+          {gpsError && gpsStatus !== 'success' && (
+            <p style={{ fontSize: 13, color: 'var(--error, #a05a3c)' }}>{gpsError}</p>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-7">
           <Field label={dict.checkout.city} value={delivery.city} onChange={(v) => setDelivery({ ...delivery, city: v })} />
           <Field label={`${dict.checkout.neighborhood} *`} value={delivery.neighborhood} onChange={(v) => setDelivery({ ...delivery, neighborhood: v })} placeholder="Tevragh‑Zeina" />

@@ -27,6 +27,7 @@ export function AdminApp({ locale, dict }: AdminAppProps) {
   const [section, setSection] = useState<Section>('dashboard');
   const [orderId, setOrderId] = useState<number | null>(null);
   const [orders, setOrders] = useState<DemoOrder[]>(DEMO_ORDERS);
+  const [openProductForm, setOpenProductForm] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -101,6 +102,12 @@ export function AdminApp({ locale, dict }: AdminAppProps) {
                 setSection('orders');
                 setOrderId(id);
               }}
+              onAddProduct={() => {
+                setOpenProductForm(true);
+                setSection('products');
+              }}
+              onViewAllOrders={() => setSection('orders')}
+              onNavigate={(s) => setSection(s)}
             />
           )}
           {section === 'orders' && !orderId && (
@@ -114,7 +121,14 @@ export function AdminApp({ locale, dict }: AdminAppProps) {
               onUpdate={(patch) => updateOrder(orderId, patch)}
             />
           )}
-          {section === 'products' && <AdminProducts dict={dict} locale={locale} />}
+          {section === 'products' && (
+            <AdminProducts
+              dict={dict}
+              locale={locale}
+              openFormSignal={openProductForm}
+              onFormConsumed={() => setOpenProductForm(false)}
+            />
+          )}
           {section === 'customers' && <AdminCustomers dict={dict} />}
           {section === 'categories' && <AdminCategories dict={dict} locale={locale} />}
           {section === 'settings' && <AdminSettings dict={dict} /> }
@@ -450,9 +464,13 @@ function AdminLangSwitcher({ locale, compact, dark }: { locale: Locale; compact?
 }
 
 function AdminDashboard({
-  dict, locale, orders, onOpenOrder,
+  dict, locale, orders, onOpenOrder, onAddProduct, onViewAllOrders, onNavigate,
 }: {
-  dict: Dict; locale: Locale; orders: DemoOrder[]; onOpenOrder: (id: number) => void;
+  dict: Dict; locale: Locale; orders: DemoOrder[];
+  onOpenOrder: (id: number) => void;
+  onAddProduct: () => void;
+  onViewAllOrders: () => void;
+  onNavigate: (section: Section) => void;
 }) {
   const totalRev = orders
     .filter((o) => o.status !== 'REJECTED')
@@ -463,6 +481,7 @@ function AdminDashboard({
     );
   const pending = orders.filter((o) => o.status === 'PENDING').length;
   const lowStock = PRODUCTS.filter((p) => p.stock < 13).length;
+  const [chartRange, setChartRange] = useState<'7J' | '30J' | '12M'>('30J');
 
   const dateLocale = locale === 'ar' ? 'ar-MR' : locale === 'en' ? 'en-GB' : 'fr-FR';
   return (
@@ -480,17 +499,17 @@ function AdminDashboard({
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-        <StatCard label={dict.admin.totalSales} value={formatPrice(totalRev, locale) + ' MRU'} sub={dict.admin.totalSalesSub} trend="+12,4%" icon="$" />
-        <StatCard label={dict.admin.newOrders} value={String(pending)} sub={dict.admin.newOrdersSub} trend={pending + ' à traiter'} icon="◐" highlight />
-        <StatCard label={dict.admin.customersStat} value="87" sub={dict.admin.customersStatSub} trend="+5" icon="◯" />
-        <StatCard label={dict.admin.lowStock} value={String(lowStock)} sub={dict.admin.lowStockSub} trend="vérifier" icon="!" warn />
+        <StatCard label={dict.admin.totalSales} value={formatPrice(totalRev, locale) + ' MRU'} sub={dict.admin.totalSalesSub} trend="+12,4%" icon="$" onClick={() => onNavigate('orders')} />
+        <StatCard label={dict.admin.newOrders} value={String(pending)} sub={dict.admin.newOrdersSub} trend={pending + ' à traiter'} icon="◐" highlight onClick={() => onNavigate('orders')} />
+        <StatCard label={dict.admin.customersStat} value="87" sub={dict.admin.customersStatSub} trend="+5" icon="◯" onClick={() => onNavigate('customers')} />
+        <StatCard label={dict.admin.lowStock} value={String(lowStock)} sub={dict.admin.lowStockSub} trend="vérifier" icon="!" warn onClick={() => onNavigate('products')} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
         <div style={{ background: 'var(--ivory)', padding: 32 }}>
           <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
             <h3 className="display italic" style={{ fontSize: 26, fontWeight: 400 }}>{dict.admin.recentOrders}</h3>
-            <button className="btn-ghost">{dict.admin.viewAll}</button>
+            <button className="btn-ghost" onClick={onViewAllOrders}>{dict.admin.viewAll}</button>
           </div>
           <div style={{ marginTop: 20 }}>
             <div className="caption row" style={{ padding: '12px 0', borderBottom: '1px solid var(--charcoal)' }}>
@@ -531,7 +550,16 @@ function AdminDashboard({
               {PRODUCTS.filter((p) => p.stock < 16)
                 .slice(0, 4)
                 .map((p) => (
-                  <div key={p.id} className="row" style={{ gap: 12, alignItems: 'center' }}>
+                  <button
+                    key={p.id}
+                    onClick={() => onNavigate('products')}
+                    className="row"
+                    style={{
+                      gap: 12, alignItems: 'center', width: '100%',
+                      background: 'transparent', textAlign: 'left',
+                      padding: 0, cursor: 'pointer',
+                    }}
+                  >
                     <div style={{ width: 44 }}>
                       <ProductImage product={p} ratio="1/1" size="sm" />
                     </div>
@@ -548,7 +576,7 @@ function AdminDashboard({
                     >
                       {p.stock}
                     </span>
-                  </div>
+                  </button>
                 ))}
             </div>
           </div>
@@ -560,7 +588,11 @@ function AdminDashboard({
             <p style={{ marginTop: 8, color: 'var(--accent-soft)', fontSize: 13 }}>
               {dict.admin.addPerfumeSub}
             </p>
-            <button className="btn" style={{ background: 'var(--cream)', color: 'var(--charcoal)', marginTop: 20 }}>
+            <button
+              className="btn"
+              style={{ background: 'var(--cream)', color: 'var(--charcoal)', marginTop: 20 }}
+              onClick={onAddProduct}
+            >
               {dict.admin.newProductCta}
             </button>
           </div>
@@ -576,19 +608,23 @@ function AdminDashboard({
             </span>
           </div>
           <div className="row" style={{ gap: 16 }}>
-            {['7J', '30J', '12M'].map((p, i) => (
-              <button
-                key={p}
-                className="caption"
-                style={{
-                  padding: '6px 14px', border: '1px solid var(--hairline)',
-                  background: i === 1 ? 'var(--charcoal)' : 'transparent',
-                  color: i === 1 ? 'var(--cream)' : 'var(--charcoal)',
-                }}
-              >
-                {p}
-              </button>
-            ))}
+            {(['7J', '30J', '12M'] as const).map((p) => {
+              const on = chartRange === p;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setChartRange(p)}
+                  className="caption"
+                  style={{
+                    padding: '6px 14px', border: '1px solid var(--hairline)',
+                    background: on ? 'var(--charcoal)' : 'transparent',
+                    color: on ? 'var(--cream)' : 'var(--charcoal)',
+                  }}
+                >
+                  {p}
+                </button>
+              );
+            })}
           </div>
         </div>
         <Sparkline />
@@ -600,17 +636,29 @@ function AdminDashboard({
 interface StatCardProps {
   label: string; value: string; sub: string; trend: string;
   icon: string; warn?: boolean; highlight?: boolean;
+  onClick?: () => void;
 }
 
-function StatCard({ label, value, sub, trend, icon, warn, highlight }: StatCardProps) {
+function StatCard({ label, value, sub, trend, icon, warn, highlight, onClick }: StatCardProps) {
   const accent = warn ? 'var(--error)' : highlight ? 'var(--accent)' : 'var(--warm-gray)';
   return (
     <div
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       style={{
         background: highlight ? 'var(--charcoal)' : 'var(--ivory)',
         color: highlight ? 'var(--cream)' : 'var(--charcoal)',
         padding: 24, display: 'flex', flexDirection: 'column', gap: 14,
         position: 'relative', overflow: 'hidden',
+        cursor: onClick ? 'pointer' : 'default',
+        textAlign: 'left',
       }}
     >
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1207,9 +1255,22 @@ function PaymentProofMock({ order, payment, total, onZoom, large }: PaymentProof
   );
 }
 
-function AdminProducts({ dict, locale }: { dict: Dict; locale: Locale }) {
+function AdminProducts({
+  dict, locale, openFormSignal = false, onFormConsumed,
+}: {
+  dict: Dict; locale: Locale;
+  openFormSignal?: boolean;
+  onFormConsumed?: () => void;
+}) {
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    if (openFormSignal) {
+      setShowForm(true);
+      onFormConsumed?.();
+    }
+  }, [openFormSignal, onFormConsumed]);
 
   const handleAdd = (values: ProductFormValues) => {
     const nextId = products.length > 0 ? Math.max(...products.map((p) => p.id)) + 1 : 1;
