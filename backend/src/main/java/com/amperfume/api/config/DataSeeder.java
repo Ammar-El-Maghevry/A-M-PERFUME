@@ -2,10 +2,12 @@ package com.amperfume.api.config;
 
 import com.amperfume.api.entity.Category;
 import com.amperfume.api.entity.Product;
+import com.amperfume.api.entity.SiteSettings;
 import com.amperfume.api.entity.User;
 import com.amperfume.api.enums.Role;
 import com.amperfume.api.repository.CategoryRepository;
 import com.amperfume.api.repository.ProductRepository;
+import com.amperfume.api.repository.SiteSettingsRepository;
 import com.amperfume.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +30,57 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
-    private final com.amperfume.api.repository.SiteSettingsRepository siteSettingsRepository;
+    private final SiteSettingsRepository siteSettingsRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
+        seedCategories();
         seedAdmin();
         seedProducts();
+        seedSiteSettings();
+    }
+
+    private void seedCategories() {
+        record Cat(String slug, String nameFr, String nameAr, String nameEn, int pos) {}
+        List.of(
+                new Cat("women",    "Pour Femme",      "نسائي",          "Women",           1),
+                new Cat("men",      "Pour Homme",      "رجالي",          "Men",             2),
+                new Cat("unisex",   "Unisexe",         "مشترك",          "Unisex",          3),
+                new Cat("oriental", "Oriental",        "شرقي",           "Oriental",        4),
+                new Cat("limited",  "Édition Limitée", "إصدارات محدودة", "Limited Edition", 5)
+        ).forEach(c -> {
+            if (!categoryRepository.existsBySlugIgnoreCase(c.slug())) {
+                categoryRepository.save(Category.builder()
+                        .slug(c.slug()).nameFr(c.nameFr()).nameAr(c.nameAr())
+                        .nameEn(c.nameEn()).position(c.pos()).build());
+            }
+        });
+        log.info("Categories verified");
+    }
+
+    private void seedSiteSettings() {
+        record Setting(String key, String value, String description) {}
+        List.of(
+                new Setting("shop.name",        "A&M Perfume",                 "Display name of the boutique"),
+                new Setting("shop.phone",       "+222 38 12 04 04",            "Primary contact phone"),
+                new Setting("shop.email",       "contact@amperfume.mr",        "Primary contact e-mail"),
+                new Setting("shop.address",     "Nouakchott, Mauritanie",      "Physical address"),
+                new Setting("shop.currency",    "MRU",                         "Default display currency"),
+                new Setting("payment.bankily",  "22 33 44 55",                 "Bankily merchant number"),
+                new Setting("payment.sedad",    "36 11 88 22",                 "Sedad merchant number"),
+                new Setting("payment.masrvi",   "42 09 77 14",                 "Masrvi merchant number"),
+                new Setting("payment.whatsapp", "https://www.tiktok.com/link/v2?aid=1988&lang=fr&scene=bio_url&target=https%3A%2F%2Fwa.me%2Fmessage%2FRKG2ZIH3O7XHL1",
+                                                "Official WhatsApp link (use this URL only)"),
+                new Setting("shipping.fee",     "0",                           "Default shipping fee in MRU"),
+                new Setting("shipping.eta",     "48h",                         "Delivery promise for Nouakchott")
+        ).forEach(s -> {
+            if (siteSettingsRepository.findBySettingKey(s.key()).isEmpty()) {
+                siteSettingsRepository.save(SiteSettings.builder()
+                        .settingKey(s.key()).value(s.value()).description(s.description()).build());
+            }
+        });
+        log.info("Site settings verified");
     }
 
     private void seedAdmin() {
