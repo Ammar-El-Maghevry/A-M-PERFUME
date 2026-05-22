@@ -265,20 +265,30 @@ function AdminSidebar({
               <button
                 key={it.k}
                 onClick={() => setSection(it.k)}
-                className="flex flex-col items-center justify-center gap-1 py-2 relative"
+                className="flex flex-col items-center justify-center gap-1.5 relative"
                 style={{
-                  color: on ? 'var(--cream)' : 'var(--accent-soft)',
-                  borderTop: `2px solid ${on ? 'var(--accent)' : 'transparent'}`,
+                  paddingTop: 10, paddingBottom: 10,
+                  color: on ? 'var(--cream)' : 'rgba(197,181,156,0.55)',
                 }}
               >
-                <AdminIcon name={it.icon} />
-                <span style={{ fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                {on && (
+                  <span
+                    style={{
+                      position: 'absolute', top: 0, insetInline: 0,
+                      height: 2, background: 'var(--accent)',
+                    }}
+                  />
+                )}
+                <span style={{ opacity: on ? 1 : 0.7, transition: 'opacity 0.15s', display: 'flex' }}>
+                  <AdminIcon name={it.icon} />
+                </span>
+                <span style={{ fontSize: 8.5, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
                   {it.label.length > 8 ? it.label.slice(0, 7) + '…' : it.label}
                 </span>
                 {it.badge && it.badge > 0 ? (
                   <span
-                    className="mono absolute top-1 right-1"
-                    style={{ fontSize: 9, background: 'var(--accent)', color: 'var(--cream)', padding: '1px 4px', minWidth: 14, textAlign: 'center' }}
+                    className="mono absolute"
+                    style={{ top: 6, insetInlineEnd: 4, fontSize: 9, background: 'var(--accent)', color: 'var(--cream)', padding: '1px 5px', minWidth: 16, textAlign: 'center', borderRadius: 2 }}
                   >
                     {it.badge}
                   </span>
@@ -490,7 +500,7 @@ function AdminDashboard({
         <span className="caption" style={{ color: 'var(--accent)' }}>
           {new Date().toLocaleDateString(dateLocale, { day: '2-digit', month: 'long', year: 'numeric' })}
         </span>
-        <h1 className="display italic" style={{ fontSize: 48, fontWeight: 300, marginTop: 6 }}>
+        <h1 className="display italic" style={{ fontSize: 'clamp(26px, 7vw, 48px)', fontWeight: 300, marginTop: 6 }}>
           {dict.admin.greeting}, Ammar.
         </h1>
         <p style={{ color: 'var(--warm-gray)', marginTop: 8, fontSize: 15 }}>
@@ -498,21 +508,22 @@ function AdminDashboard({
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label={dict.admin.totalSales} value={formatPrice(totalRev, locale) + ' MRU'} sub={dict.admin.totalSalesSub} trend="+12,4%" icon="$" onClick={() => onNavigate('orders')} />
         <StatCard label={dict.admin.newOrders} value={String(pending)} sub={dict.admin.newOrdersSub} trend={pending + ' à traiter'} icon="◐" highlight onClick={() => onNavigate('orders')} />
         <StatCard label={dict.admin.customersStat} value="87" sub={dict.admin.customersStatSub} trend="+5" icon="◯" onClick={() => onNavigate('customers')} />
         <StatCard label={dict.admin.lowStock} value={String(lowStock)} sub={dict.admin.lowStockSub} trend="vérifier" icon="!" warn onClick={() => onNavigate('products')} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
-        <div style={{ background: 'var(--ivory)', padding: 32 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+        <div style={{ background: 'var(--ivory)', padding: 'clamp(16px,4vw,32px)' }}>
           <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
             <h3 className="display italic" style={{ fontSize: 26, fontWeight: 400 }}>{dict.admin.recentOrders}</h3>
             <button className="btn-ghost" onClick={onViewAllOrders}>{dict.admin.viewAll}</button>
           </div>
           <div style={{ marginTop: 20 }}>
-            <div className="caption row" style={{ padding: '12px 0', borderBottom: '1px solid var(--charcoal)' }}>
+            {/* desktop table header */}
+            <div className="caption row hidden md:flex" style={{ padding: '12px 0', borderBottom: '1px solid var(--charcoal)' }}>
               <span style={{ flex: 1.4 }}>{dict.account.orderNumber}</span>
               <span style={{ flex: 1.4 }}>{dict.admin.customer.toUpperCase()}</span>
               <span style={{ flex: 1 }}>{dict.admin.paymentMethod.toUpperCase()}</span>
@@ -525,25 +536,39 @@ function AdminDashboard({
                 <button
                   key={o.id}
                   onClick={() => onOpenOrder(o.id)}
-                  className="row"
                   style={{
-                    width: '100%', padding: '16px 0', borderBottom: '1px solid var(--hairline)',
-                    fontSize: 14, textAlign: 'left',
+                    width: '100%', borderBottom: '1px solid var(--hairline)',
+                    textAlign: 'left', background: 'transparent',
                   }}
                 >
-                  <span className="mono" style={{ flex: 1.4 }}>{o.orderNumber}</span>
-                  <span style={{ flex: 1.4 }}>{o.customerName}</span>
-                  <span style={{ flex: 1, color: 'var(--warm-gray)' }}>{o.paymentMethod}</span>
-                  <span className="mono" style={{ flex: 1 }}>{formatPrice(total, locale)}</span>
-                  <span style={{ flex: 1.2 }}>
-                    <StatusBadge status={o.status} dict={dict} />
+                  {/* desktop row */}
+                  <span className="row hidden md:flex" style={{ padding: '16px 0', fontSize: 14, alignItems: 'center' }}>
+                    <span className="mono" style={{ flex: 1.4 }}>{o.orderNumber}</span>
+                    <span style={{ flex: 1.4 }}>{o.customerName}</span>
+                    <span style={{ flex: 1, color: 'var(--warm-gray)' }}>{o.paymentMethod}</span>
+                    <span className="mono" style={{ flex: 1 }}>{formatPrice(total, locale)}</span>
+                    <span style={{ flex: 1.2 }}>
+                      <StatusBadge status={o.status} dict={dict} />
+                    </span>
+                  </span>
+                  {/* mobile card */}
+                  <span className="flex md:hidden" style={{ padding: '14px 0', gap: 12, alignItems: 'center' }}>
+                    <span className="col" style={{ flex: 1, gap: 4 }}>
+                      <span className="mono" style={{ fontSize: 12, color: 'var(--warm-gray)' }}>{o.orderNumber}</span>
+                      <span style={{ fontSize: 14, fontWeight: 500 }}>{o.customerName}</span>
+                    </span>
+                    <span className="col" style={{ alignItems: 'flex-end', gap: 6 }}>
+                      <StatusBadge status={o.status} dict={dict} />
+                      <span className="mono" style={{ fontSize: 12 }}>{formatPrice(total, locale)}</span>
+                    </span>
+                    <span style={{ color: 'var(--accent)', fontSize: 16 }}>→</span>
                   </span>
                 </button>
               );
             })}
           </div>
         </div>
-        <div className="col gap-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
           <div style={{ background: 'var(--ivory)', padding: 28 }}>
             <h4 className="display italic" style={{ fontSize: 22, fontWeight: 400 }}>{dict.admin.lowStockTitle}</h4>
             <div className="col" style={{ gap: 14, marginTop: 16 }}>
@@ -739,25 +764,30 @@ function AdminOrders({
 
   return (
     <div className="col" style={{ gap: 28 }}>
-      <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>{dict.admin.orders}</h1>
-      <div className="row" style={{ gap: 0, borderBottom: '1px solid var(--hairline)' }}>
-        {tabs.map((tb) => (
-          <button
-            key={tb.k}
-            onClick={() => setFilter(tb.k)}
-            style={{
-              padding: '14px 18px',
-              borderBottom: filter === tb.k ? '2px solid var(--charcoal)' : '2px solid transparent',
-              color: filter === tb.k ? 'var(--charcoal)' : 'var(--warm-gray)',
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 13,
-            }}
-          >
-            {tb.label} <span className="mono" style={{ fontSize: 10, opacity: 0.6 }}>({tb.n})</span>
-          </button>
-        ))}
+      <h1 className="display italic" style={{ fontSize: 'clamp(26px, 6vw, 40px)', fontWeight: 300 }}>{dict.admin.orders}</h1>
+      {/* filter tabs – scroll horizontally on mobile */}
+      <div style={{ overflowX: 'auto', borderBottom: '1px solid var(--hairline)' }}>
+        <div className="row" style={{ gap: 0, minWidth: 'max-content' }}>
+          {tabs.map((tb) => (
+            <button
+              key={tb.k}
+              onClick={() => setFilter(tb.k)}
+              style={{
+                padding: '14px 16px',
+                borderBottom: filter === tb.k ? '2px solid var(--charcoal)' : '2px solid transparent',
+                color: filter === tb.k ? 'var(--charcoal)' : 'var(--warm-gray)',
+                display: 'flex', alignItems: 'center', gap: 8, fontSize: 13,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {tb.label} <span className="mono" style={{ fontSize: 10, opacity: 0.6 }}>({tb.n})</span>
+            </button>
+          ))}
+        </div>
       </div>
       <div style={{ background: 'var(--ivory)' }}>
-        <div className="caption row" style={{ padding: '16px 24px', borderBottom: '1px solid var(--charcoal)' }}>
+        {/* desktop header */}
+        <div className="caption row hidden md:flex" style={{ padding: '16px 24px', borderBottom: '1px solid var(--charcoal)' }}>
           <span style={{ flex: 1.2 }}>{dict.account.orderNumber}</span>
           <span style={{ flex: 0.8 }}>{dict.account.orderDate.toUpperCase()}</span>
           <span style={{ flex: 1.4 }}>{dict.admin.customer.toUpperCase()}</span>
@@ -776,34 +806,57 @@ function AdminOrders({
             <button
               key={o.id}
               onClick={() => onOpen(o.id)}
-              className="row"
               style={{
-                width: '100%', padding: '20px 24px', borderBottom: '1px solid var(--hairline)',
-                textAlign: 'left', alignItems: 'center', fontSize: 14,
+                width: '100%', borderBottom: '1px solid var(--hairline)',
+                textAlign: 'left', background: 'transparent',
               }}
             >
-              <span className="mono" style={{ flex: 1.2, fontSize: 13 }}>{o.orderNumber}</span>
-              <span style={{ flex: 0.8, color: 'var(--warm-gray)' }}>
-                {new Date(o.createdAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' })}
+              {/* desktop row */}
+              <span className="row hidden md:flex" style={{ padding: '20px 24px', alignItems: 'center', fontSize: 14 }}>
+                <span className="mono" style={{ flex: 1.2, fontSize: 13 }}>{o.orderNumber}</span>
+                <span style={{ flex: 0.8, color: 'var(--warm-gray)' }}>
+                  {new Date(o.createdAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' })}
+                </span>
+                <span className="col" style={{ flex: 1.4 }}>
+                  <span>{o.customerName}</span>
+                  <span className="caption" style={{ color: 'var(--warm-gray)' }}>{o.neighborhood}</span>
+                </span>
+                <span className="row" style={{ flex: 1.5, alignItems: 'center' }}>
+                  {items.slice(0, 3).map((it, i) => (
+                    <span key={it.productId} style={{ width: 32, marginInlineStart: i ? -10 : 0, border: '1px solid var(--ivory)', display: 'block' }}>
+                      <ProductImage product={it.product} ratio="1/1" size="sm" />
+                    </span>
+                  ))}
+                  <span className="caption" style={{ marginInlineStart: 12 }}>{totalQty} {dict.cart.items.toUpperCase()}</span>
+                </span>
+                <span style={{ flex: 1, color: 'var(--warm-gray)' }}>{o.paymentMethod}</span>
+                <span className="mono" style={{ flex: 1 }}>{formatPrice(total, locale)}</span>
+                <span style={{ flex: 1.2 }}><StatusBadge status={o.status} dict={dict} /></span>
+                <span style={{ flex: 0.6, textAlign: 'end', color: 'var(--accent)' }}>→</span>
               </span>
-              <div className="col" style={{ flex: 1.4 }}>
-                <span>{o.customerName}</span>
-                <span className="caption" style={{ color: 'var(--warm-gray)' }}>{o.neighborhood}</span>
-              </div>
-              <div className="row" style={{ flex: 1.5, alignItems: 'center' }}>
-                {items.slice(0, 3).map((it, i) => (
-                  <div key={it.productId} style={{ width: 32, marginInlineStart: i ? -10 : 0, border: '1px solid var(--ivory)' }}>
-                    <ProductImage product={it.product} ratio="1/1" size="sm" />
-                  </div>
-                ))}
-                <span className="caption" style={{ marginInlineStart: 12 }}>{totalQty} {dict.cart.items.toUpperCase()}</span>
-              </div>
-              <span style={{ flex: 1, color: 'var(--warm-gray)' }}>{o.paymentMethod}</span>
-              <span className="mono" style={{ flex: 1 }}>{formatPrice(total, locale)}</span>
-              <span style={{ flex: 1.2 }}>
-                <StatusBadge status={o.status} dict={dict} />
+              {/* mobile card */}
+              <span className="flex md:hidden" style={{ padding: '14px 16px', gap: 12, alignItems: 'center' }}>
+                <span className="col" style={{ flex: 1, gap: 5 }}>
+                  <span className="row" style={{ gap: 8, alignItems: 'center' }}>
+                    {items.slice(0, 2).map((it, i) => (
+                      <span key={it.productId} style={{ width: 36, marginInlineStart: i ? -10 : 0, border: '1px solid var(--hairline)', display: 'block', flexShrink: 0 }}>
+                        <ProductImage product={it.product} ratio="1/1" size="sm" />
+                      </span>
+                    ))}
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>{o.customerName}</span>
+                  </span>
+                  <span className="row" style={{ gap: 8, alignItems: 'center', marginTop: 4 }}>
+                    <span className="mono" style={{ fontSize: 11, color: 'var(--warm-gray)' }}>{o.orderNumber}</span>
+                    <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--warm-gray)', display: 'inline-block' }} />
+                    <span style={{ fontSize: 11, color: 'var(--warm-gray)' }}>{o.paymentMethod}</span>
+                  </span>
+                </span>
+                <span className="col" style={{ alignItems: 'flex-end', gap: 6 }}>
+                  <StatusBadge status={o.status} dict={dict} />
+                  <span className="mono" style={{ fontSize: 12 }}>{formatPrice(total, locale)} MRU</span>
+                </span>
+                <span style={{ color: 'var(--accent)', fontSize: 18, flexShrink: 0 }}>→</span>
               </span>
-              <span style={{ flex: 0.6, textAlign: 'end', color: 'var(--accent)' }}>→</span>
             </button>
           );
         })}
@@ -842,16 +895,16 @@ function AdminOrderDetail({ dict, locale, order, onBack, onUpdate }: AdminOrderD
         ← {dict.admin.allOrders}
       </button>
 
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div className="flex flex-col md:flex-row md:items-end gap-4" style={{ justifyContent: 'space-between' }}>
         <div>
           <span className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.orderDetail.toUpperCase()}</span>
-          <h1 className="mono" style={{ fontSize: 32, marginTop: 6 }}>{order.orderNumber}</h1>
+          <h1 className="mono" style={{ fontSize: 'clamp(22px, 5vw, 32px)', marginTop: 6 }}>{order.orderNumber}</h1>
           <p className="small" style={{ marginTop: 8, color: 'var(--warm-gray)' }}>
             {dict.admin.placedOn}{' '}
             {new Date(order.createdAt).toLocaleString(dateLocale, { dateStyle: 'long', timeStyle: 'short' })}
           </p>
         </div>
-        <div className="row" style={{ gap: 12, alignItems: 'center' }}>
+        <div className="flex flex-wrap gap-3 items-center">
           <StatusBadge status={order.status} dict={dict} />
           {order.status === 'PENDING' && (
             <>
@@ -889,7 +942,7 @@ function AdminOrderDetail({ dict, locale, order, onBack, onUpdate }: AdminOrderD
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6">
         <div className="col" style={{ gap: 24 }}>
           <Card title={`${dict.admin.items} · ${items.length}`}>
             {items.map(({ product, quantity }) => (
@@ -1318,14 +1371,15 @@ function AdminProducts({
 
   return (
     <div className="col" style={{ gap: 24 }}>
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>{dict.admin.products}</h1>
+      <div className="flex flex-wrap gap-4 justify-between items-end">
+        <h1 className="display italic" style={{ fontSize: 'clamp(26px, 6vw, 40px)', fontWeight: 300 }}>{dict.admin.products}</h1>
         <button className="btn btn-primary" onClick={() => setShowForm(true)}>
           {dict.admin.newProduct}
         </button>
       </div>
       <div style={{ background: 'var(--ivory)' }}>
-        <div className="caption row" style={{ padding: '16px 24px', borderBottom: '1px solid var(--charcoal)' }}>
+        {/* desktop header */}
+        <div className="caption row hidden md:flex" style={{ padding: '16px 24px', borderBottom: '1px solid var(--charcoal)' }}>
           <span style={{ flex: 0.5 }}></span>
           <span style={{ flex: 1.8 }}>{dict.admin.colName.toUpperCase()}</span>
           <span style={{ flex: 0.8 }}>{dict.admin.colSku.toUpperCase()}</span>
@@ -1340,35 +1394,56 @@ function AdminProducts({
           return (
             <div
               key={p.id}
-              className="row"
-              style={{ padding: '16px 24px', borderBottom: '1px solid var(--hairline)', alignItems: 'center', fontSize: 14 }}
+              style={{ borderBottom: '1px solid var(--hairline)' }}
             >
-              <div style={{ flex: 0.5 }}>
-                <div style={{ width: 44 }}>
-                  <ProductImage product={p} ratio="1/1" size="sm" />
+              {/* desktop row */}
+              <div className="row hidden md:flex" style={{ padding: '16px 24px', alignItems: 'center', fontSize: 14 }}>
+                <div style={{ flex: 0.5 }}>
+                  <div style={{ width: 44 }}>
+                    <ProductImage product={p} ratio="1/1" size="sm" />
+                  </div>
+                </div>
+                <div className="col" style={{ flex: 1.8, gap: 4 }}>
+                  <strong>{productName(p, locale)}</strong>
+                  <span className="caption" style={{ color: 'var(--warm-gray)' }}>{p.family}</span>
+                </div>
+                <span className="mono" style={{ flex: 0.8, fontSize: 12, color: 'var(--warm-gray)' }}>{p.sku}</span>
+                <span style={{ flex: 1 }}>{categoryName(cat, locale)}</span>
+                <span className="mono" style={{ flex: 0.8 }}>{formatPrice(p.price, locale)}</span>
+                <span
+                  className="mono"
+                  style={{ flex: 0.6, color: p.stock < 8 ? 'var(--error)' : p.stock < 16 ? 'var(--warning)' : 'inherit' }}
+                >
+                  {p.stock}
+                </span>
+                <span style={{ flex: 0.8 }}>
+                  <span className="badge success">{dict.admin.active.toUpperCase()}</span>
+                </span>
+                <div style={{ flex: 0.4, display: 'flex', gap: 14, justifyContent: 'flex-end' }}>
+                  <button className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.edit.toUpperCase()}</button>
                 </div>
               </div>
-              <div className="col" style={{ flex: 1.8, gap: 4 }}>
-                <strong>{productName(p, locale)}</strong>
-                <span className="caption" style={{ color: 'var(--warm-gray)' }}>{p.family}</span>
-              </div>
-              <span className="mono" style={{ flex: 0.8, fontSize: 12, color: 'var(--warm-gray)' }}>{p.sku}</span>
-              <span style={{ flex: 1 }}>{categoryName(cat, locale)}</span>
-              <span className="mono" style={{ flex: 0.8 }}>{formatPrice(p.price, locale)}</span>
-              <span
-                className="mono"
-                style={{
-                  flex: 0.6,
-                  color: p.stock < 8 ? 'var(--error)' : p.stock < 16 ? 'var(--warning)' : 'inherit',
-                }}
-              >
-                {p.stock}
-              </span>
-              <span style={{ flex: 0.8 }}>
-                <span className="badge success">{dict.admin.active.toUpperCase()}</span>
-              </span>
-              <div style={{ flex: 0.4, display: 'flex', gap: 14, justifyContent: 'flex-end' }}>
-                <button className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.edit.toUpperCase()}</button>
+              {/* mobile card */}
+              <div className="flex md:hidden" style={{ padding: '14px 16px', gap: 14, alignItems: 'center' }}>
+                <div style={{ width: 52, flexShrink: 0 }}>
+                  <ProductImage product={p} ratio="1/1" size="sm" />
+                </div>
+                <div className="col" style={{ flex: 1, gap: 4 }}>
+                  <strong style={{ fontSize: 14 }}>{productName(p, locale)}</strong>
+                  <span className="caption" style={{ color: 'var(--warm-gray)' }}>
+                    {p.sku} · {categoryName(cat, locale)}
+                  </span>
+                </div>
+                <div className="col" style={{ alignItems: 'flex-end', gap: 6 }}>
+                  <span className="badge success" style={{ fontSize: 10 }}>{dict.admin.active.toUpperCase()}</span>
+                  <span className="mono" style={{ fontSize: 13 }}>{formatPrice(p.price, locale)}</span>
+                  <span
+                    className="mono"
+                    style={{ fontSize: 12, color: p.stock < 8 ? 'var(--error)' : p.stock < 16 ? 'var(--warning)' : 'var(--warm-gray)' }}
+                  >
+                    {p.stock} {dict.admin.colStock}
+                  </span>
+                </div>
               </div>
             </div>
           );
@@ -1532,9 +1607,10 @@ function AdminCustomers({ dict }: { dict: Dict }) {
   ];
   return (
     <div className="col" style={{ gap: 24 }}>
-      <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>{dict.admin.customers}</h1>
+      <h1 className="display italic" style={{ fontSize: 'clamp(26px, 6vw, 40px)', fontWeight: 300 }}>{dict.admin.customers}</h1>
       <div style={{ background: 'var(--ivory)' }}>
-        <div className="caption row" style={{ padding: '16px 24px', borderBottom: '1px solid var(--charcoal)' }}>
+        {/* desktop header */}
+        <div className="caption row hidden md:flex" style={{ padding: '16px 24px', borderBottom: '1px solid var(--charcoal)' }}>
           <span style={{ flex: 2 }}>CLIENT</span>
           <span style={{ flex: 2 }}>E-MAIL</span>
           <span style={{ flex: 1 }}>COMMANDES</span>
@@ -1542,27 +1618,40 @@ function AdminCustomers({ dict }: { dict: Dict }) {
           <span style={{ flex: 1 }}>DEPUIS</span>
         </div>
         {customers.map((c) => (
-          <div
-            key={c.email}
-            className="row"
-            style={{ padding: '18px 24px', borderBottom: '1px solid var(--hairline)', alignItems: 'center' }}
-          >
-            <div className="row" style={{ flex: 2, gap: 12, alignItems: 'center' }}>
+          <div key={c.email} style={{ borderBottom: '1px solid var(--hairline)' }}>
+            {/* desktop row */}
+            <div className="row hidden md:flex" style={{ padding: '18px 24px', alignItems: 'center' }}>
+              <div className="row" style={{ flex: 2, gap: 12, alignItems: 'center' }}>
+                <div
+                  className="display italic"
+                  style={{ width: 36, height: 36, background: 'var(--accent)', color: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {c.name[0]}
+                </div>
+                <strong>{c.name}</strong>
+              </div>
+              <span style={{ flex: 2, fontSize: 13, color: 'var(--warm-gray)' }}>{c.email}</span>
+              <span className="mono" style={{ flex: 1 }}>{c.orders}</span>
+              <span className="mono" style={{ flex: 1 }}>{formatPrice(c.spent, 'fr')} MRU</span>
+              <span style={{ flex: 1, fontSize: 13, color: 'var(--warm-gray)' }}>{c.since}</span>
+            </div>
+            {/* mobile card */}
+            <div className="flex md:hidden" style={{ padding: '14px 16px', gap: 14, alignItems: 'center' }}>
               <div
                 className="display italic"
-                style={{
-                  width: 36, height: 36, background: 'var(--accent)', color: 'var(--cream)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
+                style={{ width: 44, height: 44, background: 'var(--accent)', color: 'var(--cream)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}
               >
                 {c.name[0]}
               </div>
-              <strong>{c.name}</strong>
+              <div className="col" style={{ flex: 1, gap: 4 }}>
+                <strong style={{ fontSize: 14 }}>{c.name}</strong>
+                <span style={{ fontSize: 12, color: 'var(--warm-gray)' }}>{c.email}</span>
+              </div>
+              <div className="col" style={{ alignItems: 'flex-end', gap: 4 }}>
+                <span className="mono" style={{ fontSize: 13 }}>{formatPrice(c.spent, 'fr')}</span>
+                <span style={{ fontSize: 11, color: 'var(--warm-gray)' }}>{c.orders} cmd · {c.since}</span>
+              </div>
             </div>
-            <span style={{ flex: 2, fontSize: 13, color: 'var(--warm-gray)' }}>{c.email}</span>
-            <span className="mono" style={{ flex: 1 }}>{c.orders}</span>
-            <span className="mono" style={{ flex: 1 }}>{formatPrice(c.spent, 'fr')} MRU</span>
-            <span style={{ flex: 1, fontSize: 13, color: 'var(--warm-gray)' }}>{c.since}</span>
           </div>
         ))}
       </div>
@@ -1573,8 +1662,8 @@ function AdminCustomers({ dict }: { dict: Dict }) {
 function AdminCategories({ dict, locale }: { dict: Dict; locale: Locale }) {
   return (
     <div className="col" style={{ gap: 24 }}>
-      <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>{dict.admin.categories}</h1>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <h1 className="display italic" style={{ fontSize: 'clamp(26px, 6vw, 40px)', fontWeight: 300 }}>{dict.admin.categories}</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {CATEGORIES.map((c, i) => {
           const count = PRODUCTS.filter((p) => p.categorySlug === c.slug).length;
           const hue = (['rose', 'midnight', 'sand', 'oud', 'gold'] as const)[i];
@@ -1615,8 +1704,8 @@ function AdminCategories({ dict, locale }: { dict: Dict; locale: Locale }) {
 function AdminSettings({ dict }: { dict: Dict }) {
   return (
     <div className="col" style={{ gap: 24 }}>
-      <h1 className="display italic" style={{ fontSize: 40, fontWeight: 300 }}>{dict.admin.settings}</h1>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+      <h1 className="display italic" style={{ fontSize: 'clamp(26px, 6vw, 40px)', fontWeight: 300 }}>{dict.admin.settings}</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div style={{ background: 'var(--ivory)', padding: 32 }}>
           <h3 className="display italic" style={{ fontSize: 24, fontWeight: 400 }}>{dict.admin.identity}</h3>
           <div className="col gap-md" style={{ marginTop: 24 }}>
