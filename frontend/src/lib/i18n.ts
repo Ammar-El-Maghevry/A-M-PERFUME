@@ -1,7 +1,7 @@
 import type { Product, Category } from './data';
 
 export const locales = ['fr', 'ar', 'en'] as const;
-export const defaultLocale = 'fr' as const;
+export const defaultLocale = 'ar' as const;
 export type Locale = (typeof locales)[number];
 
 export function isLocale(value: string): value is Locale {
