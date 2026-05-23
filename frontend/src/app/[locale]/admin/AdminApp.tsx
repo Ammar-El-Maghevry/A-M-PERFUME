@@ -1493,6 +1493,10 @@ interface ProductFormValues {
   heartNotes: string;
   baseNotes: string;
   images: string[];
+  position: string;
+  showOnHomepage: boolean;
+  isFeatured: boolean;
+  status: 'ACTIF' | 'INACTIF' | 'BIENTOT';
 }
 
 const CONCENTRATIONS = ['Eau de Parfum', 'Eau de Toilette', 'Extrait de Parfum'];
@@ -1506,8 +1510,12 @@ function ProductFormModal({
   onCancel: () => void;
   onSave: (values: ProductFormValues) => void;
 }) {
-  const imgInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const mainInputRef = useRef<HTMLInputElement>(null);
+  const addRef1 = useRef<HTMLInputElement>(null);
+  const addRef2 = useRef<HTMLInputElement>(null);
+  const addRef3 = useRef<HTMLInputElement>(null);
+  const additionalRefs = [addRef1, addRef2, addRef3];
+  const [draggingSlot, setDraggingSlot] = useState<number | null>(null);
 
   const [form, setForm] = useState<ProductFormValues>({
     nameFr: '', nameAr: '', nameEn: '',
@@ -1518,41 +1526,67 @@ function ProductFormModal({
     family: '',
     description: '',
     topNotes: '', heartNotes: '', baseNotes: '',
-    images: [],
+    images: ['', '', '', ''],
+    position: '',
+    showOnHomepage: true,
+    isFeatured: false,
+    status: 'ACTIF',
   });
 
   const update = <K extends keyof ProductFormValues>(k: K, v: ProductFormValues[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
-  const addImages = (files: FileList | null) => {
-    if (!files) return;
-    const remaining = 4 - form.images.length;
-    if (remaining <= 0) return;
-    const toAdd = Array.from(files).slice(0, remaining);
-    toAdd.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setForm((prev) => ({
-          ...prev,
-          images: prev.images.length < 4 ? [...prev.images, reader.result as string] : prev.images,
-        }));
-      };
-      reader.readAsDataURL(file);
-    });
+  const setSlot = (slot: number, file: File | undefined) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((prev) => {
+        const next = [...prev.images];
+        while (next.length < 4) next.push('');
+        next[slot] = reader.result as string;
+        return { ...prev, images: next };
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
-  const removeImage = (idx: number) =>
-    setForm((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
+  const clearSlot = (slot: number) =>
+    setForm((prev) => {
+      const next = [...prev.images];
+      while (next.length < 4) next.push('');
+      next[slot] = '';
+      return { ...prev, images: next };
+    });
+
+  const promoteToMain = (slot: number) =>
+    setForm((prev) => {
+      const next = [...prev.images];
+      while (next.length < 4) next.push('');
+      if (!next[slot]) return prev;
+      [next[0], next[slot]] = [next[slot], next[0]];
+      return { ...prev, images: next };
+    });
 
   const valid =
     form.nameFr.trim() && form.nameAr.trim() && form.nameEn.trim() &&
     form.price.trim() && form.stock.trim();
+
+  const handleSave = () => {
+    if (!valid) return;
+    onSave({ ...form, images: form.images.filter(Boolean) });
+  };
 
   const selectStyle: React.CSSProperties = {
     width: '100%', padding: '14px 0', background: 'transparent',
     border: 'none', borderBottom: '1px solid var(--hairline)',
     fontSize: 15, outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
   };
+
+  const mainImage = form.images[0] || '';
+  const hasAnyImage = form.images.some(Boolean);
+  const previewName =
+    (locale === 'ar' ? form.nameAr : locale === 'en' ? form.nameEn : form.nameFr) ||
+    'Nom du produit';
 
   return (
     <div
@@ -1583,71 +1617,127 @@ function ProductFormModal({
         </div>
 
         <div className="col" style={{ gap: 28 }}>
-          {/* ── Image upload ─────────────────────────────── */}
-          <div className="col" style={{ gap: 12 }}>
+          {/* ── Images ──────────────────────────────────── */}
+          <div className="col" style={{ gap: 18 }}>
             <div>
-              <span className="caption" style={{ color: 'var(--accent)' }}>{dict.admin.formImages.toUpperCase()}</span>
-              <p style={{ fontSize: 12, color: 'var(--warm-gray)', marginTop: 4 }}>{dict.admin.formImagesMax}</p>
+              <span className="caption" style={{ color: 'var(--accent)' }}>PHOTOS DU PRODUIT</span>
+              <p style={{ fontSize: 12, color: 'var(--warm-gray)', marginTop: 4 }}>
+                JPG · PNG · max 5 Mo · La photo principale apparaît dans la grille du catalogue.
+              </p>
             </div>
 
-            {/* Thumbnails */}
-            {form.images.length > 0 && (
-              <div className="flex flex-wrap gap-3">
-                {form.images.map((src, idx) => (
-                  <div key={idx} style={{ position: 'relative', width: 80, height: 80 }}>
-                    <img
-                      src={src}
-                      alt={`photo ${idx + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', border: idx === 0 ? '2px solid var(--accent)' : '1px solid var(--hairline)', display: 'block' }}
-                    />
-                    {idx === 0 && (
-                      <span className="mono" style={{ position: 'absolute', bottom: 0, insetInline: 0, background: 'var(--accent)', color: 'var(--cream)', fontSize: 8, textAlign: 'center', padding: '2px 0', letterSpacing: '0.1em' }}>
-                        MAIN
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeImage(idx)}
-                      style={{
-                        position: 'absolute', top: -8, insetInlineEnd: -8, width: 22, height: 22,
-                        background: 'var(--charcoal)', color: 'var(--cream)', borderRadius: '50%',
-                        fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                      aria-label="Supprimer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Drop zone */}
-            {form.images.length < 4 && (
+            {/* Main photo */}
+            <div className="col" style={{ gap: 8 }}>
+              <span className="caption" style={{ color: 'var(--charcoal)' }}>PHOTO PRINCIPALE</span>
+              <input
+                ref={mainInputRef}
+                type="file" accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => setSlot(0, e.target.files?.[0])}
+              />
               <div
-                onClick={() => imgInputRef.current?.click()}
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={(e) => { e.preventDefault(); setIsDragging(false); addImages(e.dataTransfer.files); }}
+                onClick={() => !mainImage && mainInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setDraggingSlot(0); }}
+                onDragLeave={() => setDraggingSlot(null)}
+                onDrop={(e) => { e.preventDefault(); setDraggingSlot(null); setSlot(0, e.dataTransfer.files?.[0]); }}
                 style={{
-                  border: `1px dashed ${isDragging ? 'var(--accent)' : 'var(--hairline)'}`,
-                  padding: '28px 20px', textAlign: 'center', cursor: 'pointer',
-                  background: isDragging ? 'rgba(184,146,74,0.05)' : 'var(--ivory)',
-                  transition: 'border-color 0.15s, background 0.15s',
+                  position: 'relative', width: 200, height: 200,
+                  border: mainImage ? '2px solid var(--accent)' : `2px dashed ${draggingSlot === 0 ? 'var(--accent)' : 'var(--hairline)'}`,
+                  background: mainImage ? 'transparent' : (draggingSlot === 0 ? 'rgba(184,146,74,0.05)' : 'var(--ivory)'),
+                  cursor: mainImage ? 'default' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  overflow: 'hidden', transition: 'all 0.15s',
                 }}
               >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ margin: '0 auto 10px' }}>
-                  <rect x="3" y="3" width="18" height="18" />
-                  <path d="M3 16l5-5 4 4 3-3 6 4" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                </svg>
-                <p style={{ fontSize: 13, color: 'var(--charcoal)' }}>{dict.admin.formImagesHint}</p>
-                <p className="caption" style={{ color: 'var(--warm-gray)', marginTop: 6 }}>
-                  {4 - form.images.length} {dict.admin.formImages.split('(')[0].trim().toLowerCase()} restant{4 - form.images.length > 1 ? 'es' : 'e'}
-                </p>
+                {mainImage ? (
+                  <>
+                    <img src={mainImage} alt="principale" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <span className="mono" style={{ position: 'absolute', bottom: 0, insetInline: 0, background: 'var(--accent)', color: 'var(--cream)', fontSize: 10, textAlign: 'center', padding: '5px 0', letterSpacing: '0.16em' }}>
+                      PRINCIPALE
+                    </span>
+                    <button
+                      type="button" onClick={() => clearSlot(0)} aria-label="Supprimer"
+                      style={{
+                        position: 'absolute', top: 6, insetInlineEnd: 6, width: 26, height: 26,
+                        background: 'var(--charcoal)', color: 'var(--cream)', borderRadius: '50%',
+                        fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >✕</button>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', color: 'var(--warm-gray)' }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ margin: '0 auto 8px' }}>
+                      <rect x="3" y="3" width="18" height="18" />
+                      <path d="M3 16l5-5 4 4 3-3 6 4" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                    </svg>
+                    <p style={{ fontSize: 12 }}>Cliquez ou déposez</p>
+                  </div>
+                )}
               </div>
-            )}
-            <input ref={imgInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => addImages(e.target.files)} />
+            </div>
+
+            {/* Additional photos */}
+            <div className="col" style={{ gap: 8 }}>
+              <span className="caption" style={{ color: 'var(--warm-gray)' }}>PHOTOS SUPPLÉMENTAIRES (3 MAX)</span>
+              <div className="flex flex-wrap" style={{ gap: 14 }}>
+                {[1, 2, 3].map((slot) => {
+                  const img = form.images[slot] || '';
+                  const inputRef = additionalRefs[slot - 1];
+                  return (
+                    <div key={slot} className="col" style={{ gap: 6, alignItems: 'center' }}>
+                      <input
+                        ref={inputRef} type="file" accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => setSlot(slot, e.target.files?.[0])}
+                      />
+                      <div
+                        onClick={() => !img && inputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); setDraggingSlot(slot); }}
+                        onDragLeave={() => setDraggingSlot(null)}
+                        onDrop={(e) => { e.preventDefault(); setDraggingSlot(null); setSlot(slot, e.dataTransfer.files?.[0]); }}
+                        style={{
+                          position: 'relative', width: 100, height: 100,
+                          border: img ? '1px solid var(--hairline)' : `1px dashed ${draggingSlot === slot ? 'var(--accent)' : 'var(--hairline)'}`,
+                          background: img ? 'transparent' : (draggingSlot === slot ? 'rgba(184,146,74,0.05)' : 'var(--ivory)'),
+                          cursor: img ? 'default' : 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          overflow: 'hidden', transition: 'all 0.15s',
+                        }}
+                      >
+                        {img ? (
+                          <>
+                            <img src={img} alt={`photo ${slot + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <span className="mono" style={{ position: 'absolute', top: 4, insetInlineStart: 4, background: 'rgba(26,26,26,0.85)', color: 'var(--cream)', fontSize: 10, padding: '2px 6px', letterSpacing: '0.06em' }}>
+                              {slot + 1}
+                            </span>
+                            <button
+                              type="button" onClick={() => clearSlot(slot)} aria-label="Supprimer"
+                              style={{
+                                position: 'absolute', top: -6, insetInlineEnd: -6, width: 22, height: 22,
+                                background: 'var(--charcoal)', color: 'var(--cream)', borderRadius: '50%',
+                                fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              }}
+                            >✕</button>
+                          </>
+                        ) : (
+                          <span className="caption" style={{ color: 'var(--warm-gray)' }}>Photo {slot + 1}</span>
+                        )}
+                      </div>
+                      {img && (
+                        <button
+                          type="button"
+                          onClick={() => promoteToMain(slot)}
+                          style={{ fontSize: 10, color: 'var(--accent)', letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'underline' }}
+                        >
+                          → Définir comme principale
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* ── Names ────────────────────────────────────── */}
@@ -1712,13 +1802,109 @@ function ProductFormModal({
               <Field label={dict.admin.formBaseNotes} value={form.baseNotes} onChange={(v) => update('baseNotes', v)} placeholder="Musc, Ambre…" />
             </div>
           </div>
+
+          {/* ── Display & publication ───────────────────── */}
+          <div className="col" style={{ gap: 14 }}>
+            <span className="caption" style={{ color: 'var(--accent)' }}>AFFICHAGE & PUBLICATION</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+              <Field
+                label="Position dans le catalogue"
+                value={form.position}
+                onChange={(v) => update('position', v)}
+                type="number"
+                placeholder="Vide = à la fin"
+              />
+              <div className="field">
+                <label>Statut</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => update('status', e.target.value as ProductFormValues['status'])}
+                  style={selectStyle}
+                >
+                  <option value="ACTIF">Actif — visible sur le site</option>
+                  <option value="INACTIF">Inactif — caché</option>
+                  <option value="BIENTOT">Bientôt — coming soon</option>
+                </select>
+              </div>
+            </div>
+            <div className="col" style={{ gap: 10 }}>
+              <ToggleRow
+                label="Afficher sur la page d'accueil"
+                hint="Apparaît dans la section « Nouveautés »"
+                value={form.showOnHomepage}
+                onChange={(v) => update('showOnHomepage', v)}
+              />
+              <ToggleRow
+                label="Produit vedette"
+                hint="Badge spécial et mise en avant"
+                value={form.isFeatured}
+                onChange={(v) => update('isFeatured', v)}
+              />
+            </div>
+          </div>
+
+          {/* ── Product card preview ────────────────────── */}
+          {hasAnyImage && (
+            <div className="col" style={{ gap: 12 }}>
+              <span className="caption" style={{ color: 'var(--accent)' }}>APERÇU DE LA CARTE PRODUIT</span>
+              <p style={{ fontSize: 12, color: 'var(--warm-gray)' }}>
+                Voici à quoi ressemblera votre produit dans la grille du catalogue.
+              </p>
+              <div style={{ background: 'var(--ivory)', padding: 24, border: '1px solid var(--hairline)', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ width: 220 }}>
+                  <div style={{ position: 'relative', aspectRatio: '3/4', background: 'var(--paper)', overflow: 'hidden' }}>
+                    {mainImage ? (
+                      <img src={mainImage} alt="aperçu" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--warm-gray)', fontSize: 11, textAlign: 'center', padding: 16 }}>
+                        Aucune photo principale définie
+                      </div>
+                    )}
+                    {form.isFeatured && (
+                      <span className="badge bronze" style={{ position: 'absolute', top: 10, insetInlineStart: 10, fontSize: 9, padding: '3px 8px' }}>
+                        VEDETTE
+                      </span>
+                    )}
+                    {form.status === 'BIENTOT' && (
+                      <span className="badge dark" style={{ position: 'absolute', top: 10, insetInlineEnd: 10, fontSize: 9, padding: '3px 8px' }}>
+                        BIENTÔT
+                      </span>
+                    )}
+                    {form.status === 'INACTIF' && (
+                      <span className="badge error" style={{ position: 'absolute', top: 10, insetInlineEnd: 10, fontSize: 9, padding: '3px 8px' }}>
+                        INACTIF
+                      </span>
+                    )}
+                  </div>
+                  <div className="col" style={{ paddingTop: 12, gap: 4 }}>
+                    <span style={{ fontSize: 10, color: 'var(--warm-gray)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {categoryName(CATEGORIES.find((c) => c.slug === form.categorySlug)!, locale)}
+                    </span>
+                    <strong className="display" style={{ fontSize: 18, fontWeight: 400 }}>
+                      {previewName}
+                    </strong>
+                    <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                      <span className="mono" style={{ fontSize: 13, color: 'var(--graphite)' }}>
+                        {form.price ? formatPrice(Number(form.price), locale) : '—'} {dict.common.currency}
+                      </span>
+                      {form.size && (
+                        <span style={{ fontSize: 10, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          {form.size}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Actions ──────────────────────────────────────── */}
         <div className="row" style={{ justifyContent: 'flex-end', gap: 12, marginTop: 32 }}>
           <button onClick={onCancel} className="btn btn-secondary">{dict.admin.formCancel}</button>
           <button
-            onClick={() => valid && onSave(form)}
+            onClick={handleSave}
             className="btn btn-primary"
             disabled={!valid}
             style={{ opacity: valid ? 1 : 0.5 }}
@@ -1728,6 +1914,48 @@ function ProductFormModal({
         </div>
       </div>
     </div>
+  );
+}
+
+function ToggleRow({
+  label, hint, value, onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!value)}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '14px 16px', background: 'var(--ivory)', border: '1px solid var(--hairline)',
+        width: '100%', textAlign: 'start', gap: 12,
+      }}
+    >
+      <span className="col" style={{ gap: 2, alignItems: 'flex-start' }}>
+        <span style={{ fontSize: 14 }}>{label}</span>
+        {hint && <span style={{ fontSize: 11, color: 'var(--warm-gray)' }}>{hint}</span>}
+      </span>
+      <span
+        style={{
+          width: 42, height: 24, borderRadius: 12,
+          background: value ? 'var(--accent)' : 'var(--hairline)',
+          display: 'flex', alignItems: 'center',
+          justifyContent: value ? 'flex-end' : 'flex-start',
+          padding: 3, transition: 'background 0.15s', flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            width: 18, height: 18, background: 'var(--cream)', borderRadius: '50%',
+            transition: 'all 0.15s',
+          }}
+        />
+      </span>
+    </button>
   );
 }
 
